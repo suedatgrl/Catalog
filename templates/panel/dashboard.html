@@ -1,0 +1,46 @@
+{% extends "panel/base.html" %}
+{% block title %}Özet{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div class="grow"><h1>Hoş geldiniz</h1><p>Mağazanızın bugünkü durumu.</p></div>
+  <a class="btn" href="{% url 'panel:product_new' %}">+ Ürün ekle</a>
+</div>
+
+{% if total == 0 %}
+<div class="tip"><b>İlk adım:</b> Birkaç ürün ekleyin, sonra “QR kod” sayfasından afişinizi yazdırıp dükkâna asın.</div>
+{% elif no_photo %}
+<div class="tip">{{ no_photo }} ürününüzün fotoğrafı yok. Fotoğraflı ürünler çok daha fazla ilgi görür. <a class="link" href="{% url 'panel:products' %}">Ürünlere git</a></div>
+{% endif %}
+
+<div class="stats">
+  <div class="stat"><b>{{ active }}</b><span>Yayındaki ürün{% if total != active %} ({{ total }} toplam){% endif %}</span></div>
+  <div class="stat"><b>{{ request.shop.scan_count }}</b><span>QR okutma</span></div>
+  <div class="stat"><b>{{ views }}</b><span>Ürün görüntüleme</span></div>
+  <div class="stat"><b>{{ new_requests }}</b><span>Yeni özel dikim talebi</span></div>
+</div>
+
+<div class="cols">
+  <div class="card">
+    <h2>En çok bakılan ürünler</h2>
+    {% if top %}
+    <ul class="list" style="border:0">
+      {% for p in top %}
+      <li style="padding-left:0;padding-right:0">
+        {% with img=p.cover %}{% if img %}<img class="thumb" src="{{ img.thumb.url }}" alt="">{% else %}<span class="thumb">?</span>{% endif %}{% endwith %}
+        <a class="grow" href="{% url 'panel:product_edit' p.pk %}"><strong>{{ p.name }}</strong><small>{{ p.view_count }} görüntüleme</small></a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">Henüz görüntüleme yok. QR kodunuzu müşterilerinizle paylaşın.</p>{% endif %}
+  </div>
+  <div class="card">
+    <h2>Mağaza adresiniz</h2>
+    <span class="url">{{ store_url }}</span>
+    <div class="actions">
+      <a class="btn ghost" href="{{ request.shop.get_absolute_url }}" target="_blank" rel="noopener">Mağazayı aç ↗</a>
+      <a class="btn ghost" href="{% url 'panel:qr' %}">QR kodu indir</a>
+    </div>
+    {% if new_requests %}<p style="margin:14px 0 0"><a class="link" href="{% url 'panel:requests' %}">{{ new_requests }} yeni talebi görüntüle →</a></p>{% endif %}
+  </div>
+</div>
+{% endblock %}

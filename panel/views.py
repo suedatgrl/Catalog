@@ -17,7 +17,7 @@ from django.views.decorators.http import require_POST
 from catalog.models import (
     Category, CustomItem, CustomRequest, FabricColor, Product, ProductImage, Shop,
 )
-from catalog.utils import normalize, process_image, site_url
+from catalog.utils import process_image, search_words, site_url
 
 from .forms import CategoryForm, CustomItemForm, FabricColorForm, ProductForm, ShopSettingsForm
 
@@ -83,7 +83,7 @@ def dashboard(request):
 def product_list(request):
     products = request.shop.products.select_related("category").prefetch_related("images")
     q = request.GET.get("q", "").strip()
-    for word in normalize(q).split():
+    for word in search_words(q):
         products = products.filter(search_text__contains=word)
     cat = request.GET.get("kategori", "")
     if cat.isdigit():
@@ -266,7 +266,10 @@ def request_status(request, pk):
 
 @panel_view
 def shop_settings(request):
-    form = ShopSettingsForm(request.POST or None, request.FILES or None, instance=request.shop)
+    # Form geçersiz değerleri de nesneye yazar; sayfanın geri kalanı request.shop'u
+    # kullandığı için formu ayrı bir kopya üzerinde çalıştırıyoruz.
+    instance = Shop.objects.get(pk=request.shop.pk)
+    form = ShopSettingsForm(request.POST or None, request.FILES or None, instance=instance)
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Mağaza bilgileri güncellendi.")

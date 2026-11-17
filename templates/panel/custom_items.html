@@ -1,0 +1,37 @@
+{% extends "panel/base.html" %}
+{% load catalog_extras %}
+{% block title %}Özel dikim{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div class="grow"><h1>Özel dikim ürünleri</h1><p>Ölçüye göre diktiğiniz ürünler. Müşteri ölçüsünü girer, kartelanızdan renk seçer ve çizimini görür.</p></div>
+  {% if objects and color_count %}<a class="btn ghost" href="{% url 'catalog:custom' request.shop.slug %}" target="_blank" rel="noopener">Sayfayı gör ↗</a>{% endif %}
+</div>
+{% if not request.shop.custom_enabled %}<div class="tip">Özel dikim sayfası şu an kapalı. <a class="link" href="{% url 'panel:settings' %}">Mağaza ayarlarından</a> açabilirsiniz.</div>{% endif %}
+{% if objects and not color_count %}<div class="tip">Sayfanın yayına girmesi için <a class="link" href="{% url 'panel:colors' %}">renk kartelanıza</a> en az bir renk ekleyin.</div>{% endif %}
+<div class="cols wide-left">
+  <div>
+    {% if objects %}
+    <ul class="list">
+      {% for it in objects %}
+      <li>
+        <div class="grow">
+          <strong>{{ it.name }}</strong>
+          <small>{{ it.get_kind_display }}{% if it.price_per_m2 %} · m² {{ it.price_per_m2|tl }}{% endif %}</small>
+          {% if not it.is_active %}<span class="tagx warn">Gizli</span>{% endif %}
+        </div>
+        <div class="actions">
+          <a class="btn ghost sm" href="{% url 'panel:edit' 'ozel' it.pk %}">Düzenle</a>
+          <form class="inline" method="post" action="{% url 'panel:delete' 'ozel' it.pk %}" onsubmit="return confirm('Bu ürün silinsin mi?')">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<div class="empty"><strong>Henüz özel dikim ürünü yok</strong>Örn. nevresim takımı, koltuk örtüsü, perde.</div>{% endif %}
+  </div>
+  <form class="card" method="post">
+    <h2>Yeni özel dikim ürünü</h2>
+    {% include "panel/_form.html" %}
+    <button class="btn" type="submit">Ekle</button>
+  </form>
+</div>
+{% endblock %}

@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from .kinds import kind_config
 from .models import CustomRequest, Product, Shop
-from .utils import normalize
+from .utils import search_words
 
 PAGE_SIZE = 24
 
@@ -49,7 +49,7 @@ def shop_home(request, slug):
     q = request.GET.get("q", "").strip()[:60]
     category_slug = request.GET.get("kategori", "")
     category = None
-    for word in normalize(q).split():
+    for word in search_words(q):
         products = products.filter(search_text__contains=word)
     if category_slug:
         category = shop.categories.filter(slug=category_slug).first()

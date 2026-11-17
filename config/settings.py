@@ -6,8 +6,12 @@ Vitrin — çok mağazalı dijital katalog platformu.
   SITE_URL=https://ornek.com   (QR kodların içine yazılan adres)
   DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT  (verilirse PostgreSQL kullanılır)
 """
+import mimetypes
 import os
 from pathlib import Path
+
+# Eski Python sürümleri .webp türünü tanımıyor; geliştirme sunucusu doğru başlıkla sunsun.
+mimetypes.add_type("image/webp", ".webp")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

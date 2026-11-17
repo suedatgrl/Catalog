@@ -1,0 +1,56 @@
+{% extends "panel/base.html" %}
+{% load catalog_extras %}
+{% block title %}Ürünler{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div class="grow"><h1>Ürünler</h1><p>{{ products.paginator.count }} ürün</p></div>
+  <a class="btn" href="{% url 'panel:product_new' %}">+ Ürün ekle</a>
+</div>
+
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Ürün adı veya kodu ara…" aria-label="Ürün ara">
+  <select name="kategori" aria-label="Kategori">
+    <option value="">Tüm kategoriler</option>
+    {% for c in categories %}<option value="{{ c.pk }}" {% if cat == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+  </select>
+  <select name="durum" aria-label="Durum">
+    <option value="">Tüm durumlar</option>
+    <option value="yayinda" {% if status == "yayinda" %}selected{% endif %}>Yayında</option>
+    <option value="gizli" {% if status == "gizli" %}selected{% endif %}>Gizli</option>
+    <option value="tukendi" {% if status == "tukendi" %}selected{% endif %}>Tükenenler</option>
+  </select>
+  <button class="btn ghost" type="submit">Filtrele</button>
+</form>
+
+{% if products %}
+<ul class="list">
+  {% for p in products %}
+  <li class="wrapline">
+    {% with img=p.cover %}{% if img %}<img class="thumb" src="{{ img.thumb.url }}" alt="">{% else %}<span class="thumb" title="Fotoğraf yok">?</span>{% endif %}{% endwith %}
+    <a class="grow" href="{% url 'panel:product_edit' p.pk %}">
+      <strong>{{ p.name }}</strong>
+      <small>{{ p.category.name|default:"Kategorisiz" }} · {% if p.price is not None %}{{ p.price|tl }}{% else %}Fiyat yok{% endif %}</small><br>
+      {% if not p.is_active %}<span class="tagx warn">Gizli</span>{% endif %}
+      {% if not p.in_stock %}<span class="tagx no">Tükendi</span>{% endif %}
+      {% if p.is_featured %}<span class="tagx ok">Öne çıkan</span>{% endif %}
+    </a>
+    <div class="actions">
+      <form class="inline" method="post" action="{% url 'panel:product_toggle' p.pk %}">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="btn ghost sm" name="field" value="in_stock">{% if p.in_stock %}Tükendi yap{% else %}Stokta yap{% endif %}</button>
+        <button class="btn ghost sm" name="field" value="is_active">{% if p.is_active %}Gizle{% else %}Yayınla{% endif %}</button>
+      </form>
+      <a class="btn ghost sm" href="{% url 'panel:product_edit' p.pk %}">Düzenle</a>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% include "panel/_pager.html" with page=products %}
+{% else %}
+<div class="empty">
+  <strong>{% if q or cat or status %}Bu filtreye uyan ürün yok{% else %}Henüz ürün eklemediniz{% endif %}</strong>
+  Ürün eklemek bir dakika sürer: ad, fiyat ve bir fotoğraf yeterli.
+  <br><a class="btn" href="{% url 'panel:product_new' %}">+ İlk ürünü ekle</a>
+</div>
+{% endif %}
+{% endblock %}

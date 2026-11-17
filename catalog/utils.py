@@ -1,5 +1,6 @@
 import re
 import secrets
+import unicodedata
 import uuid
 from io import BytesIO
 
@@ -18,8 +19,23 @@ def tr_slugify(text):
 
 
 def normalize(text):
-    """Arama için: Türkçe harfleri sadeleştirip küçültür ('ÜTÜ' == 'utu')."""
-    return re.sub(r"\s+", " ", str(text).translate(_TR_MAP).lower()).strip()
+    """Arama için metni sadeleştirir: 'ÜTÜ' == 'ütü' == 'utu', 'Kâğıt' == 'kagit'.
+    Hem ürün metni hem de müşterinin yazdığı kelime buradan geçtiği için
+    Türkçe karakterle de, karaktersiz de yazılsa aynı sonuç bulunur."""
+    text = str(text).translate(_TR_MAP)
+    # â, î, û gibi şapkalı harfler ve bazı klavyelerin ayrık yazdığı işaretler (c + ¸)
+    text = "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch))
+    return re.sub(r"\s+", " ", text.translate(_TR_MAP).lower()).strip()
+
+
+def search_words(query):
+    """Arama kelimeleri. Çoğul eki atılır: 'havlular' yazan 'havlu'yu da bulur."""
+    words = []
+    for word in normalize(query).split():
+        if len(word) >= 6 and word.endswith(("ler", "lar")):
+            word = word[:-3]
+        words.append(word)
+    return words
 
 
 def make_code(length=7):
@@ -76,8 +92,9 @@ def site_url(request):
 
 def text_on(hex_color):
     """Verilen zemin renginin üstünde okunaklı yazı rengi."""
-    h = hex_color.lstrip("#")
-    if len(h) == 3:
-        h = "".join(c * 2 for c in h)
-    r, g, b = (int(h[i : i + 2], 16) for i in (0, 2, 4))
+    try:
+        h = hex_color.lstrip("#")
+        r, g, b = (int(h[i : i + 2], 16) for i in (0, 2, 4))
+    except (ValueError, AttributeError):
+        return "#ffffff"
     return "#111827" if (0.299 * r + 0.587 * g + 0.114 * b) > 165 else "#ffffff"

@@ -1,0 +1,41 @@
+{% load catalog_extras %}<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR afişi · {{ request.shop.name }}</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e7e5e4; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #1c1917; }
+    .bar { padding: 14px; text-align: center; }
+    .bar button { font: inherit; font-weight: 700; padding: 12px 22px; border-radius: 10px; border: 0; background: #1c1917; color: #fff; cursor: pointer; }
+    .sheet {
+      width: 210mm; min-height: 297mm; max-width: 100%; margin: 0 auto 24px; background: #fff;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      border-top: 22mm solid {{ request.shop.accent_color }}; padding: 18mm 18mm 14mm;
+    }
+    .logo { width: 30mm; height: 30mm; border-radius: 7mm; object-fit: cover; margin-bottom: 6mm; }
+    h1 { font-size: 15mm; line-height: 1.05; margin: 0; letter-spacing: -.02em; font-weight: 800; }
+    .tag { font-size: 6mm; color: #57534e; margin: 4mm 0 0; }
+    .qr { width: 112mm; height: 112mm; margin: 14mm 0 10mm; padding: 4mm; border: 1.2mm solid #1c1917; border-radius: 8mm; }
+    .qr img { width: 100%; height: 100%; }
+    .call { font-size: 10mm; font-weight: 800; margin: 0; }
+    .how { font-size: 5.5mm; color: #57534e; margin: 3mm 0 0; max-width: 150mm; }
+    .foot { margin-top: auto; padding-top: 10mm; font-size: 4.5mm; color: #78716c; }
+    @media print { body { background: #fff; } .bar { display: none; } .sheet { margin: 0; } * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  </style>
+</head>
+<body>
+<div class="bar"><button onclick="window.print()">Yazdır / PDF olarak kaydet</button></div>
+<div class="sheet">
+  {% if request.shop.logo %}<img class="logo" src="{{ request.shop.logo.url }}" alt="">{% endif %}
+  <h1>{{ request.shop.name }}</h1>
+  {% if request.shop.tagline %}<p class="tag">{{ request.shop.tagline }}</p>{% endif %}
+  <div class="qr"><img src="{% url 'panel:qr_image' 'svg' %}" alt="QR kod"></div>
+  <p class="call">Tüm ürünlerimiz telefonunuzda</p>
+  <p class="how">Telefonunuzun kamerasını açın ve kodu okutun. Uygulama indirmenize gerek yok.</p>
+  <p class="foot">{% if request.shop.phone %}{{ request.shop.phone }}{% endif %}{% if request.shop.phone and request.shop.instagram_handle %} · {% endif %}{% if request.shop.instagram_handle %}@{{ request.shop.instagram_handle }}{% endif %}</p>
+</div>
+</body>
+</html>

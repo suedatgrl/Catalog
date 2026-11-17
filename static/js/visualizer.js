@@ -5,7 +5,7 @@
   const cfg = JSON.parse(document.getElementById('viz-config').textContent);
   const svg = document.getElementById('viz');
   const NS = 'http://www.w3.org/2000/svg';
-  const VW = 600, VH = 460, PAD = 56;
+  const VW = 600, VH = 460, PAD = 64;
   const $ = (id) => document.getElementById(id);
 
   const state = { item: cfg.items[0], dims: {}, parts: {} };
@@ -67,7 +67,7 @@
 
   function label(g, x, y, text, anchor = 'middle', rotate = 0) {
     const t = el('text', {
-      x, y, 'text-anchor': anchor, 'font-size': 14, 'font-weight': 700, fill: '#44403c',
+      x, y, 'text-anchor': anchor, 'font-size': 18, 'font-weight': 700, fill: '#44403c',
       'font-family': 'system-ui, sans-serif', 'paint-order': 'stroke', stroke: '#fff', 'stroke-width': 4,
     }, g);
     if (rotate) t.setAttribute('transform', `rotate(${rotate} ${x} ${y})`);
@@ -76,13 +76,13 @@
 
   function dimH(g, x1, x2, y, text) {
     el('path', { d: `M${x1} ${y}H${x2}M${x1} ${y - 6}v12M${x2} ${y - 6}v12`, stroke: '#78716c', 'stroke-width': 1.5, fill: 'none' }, g);
-    label(g, (x1 + x2) / 2, y + 20, text);
+    label(g, (x1 + x2) / 2, y + 24, text);
   }
   function dimV(g, x, y1, y2, text) {
     el('path', { d: `M${x} ${y1}V${y2}M${x - 6} ${y1}h12M${x - 6} ${y2}h12`, stroke: '#78716c', 'stroke-width': 1.5, fill: 'none' }, g);
-    label(g, x + 20, (y1 + y2) / 2, text, 'middle', 90);
+    label(g, x + 16, (y1 + y2) / 2, text, 'middle', 90);
   }
-  function note(g, text) { label(g, VW / 2, 24, text); }
+  function note(g, text) { label(g, VW / 2, 28, text); }
 
   // Gerçek ölçüyü (cm) çizim alanına sığdıran ölçek ve sol-üst köşe
   function fit(realW, realH) {
@@ -355,5 +355,7 @@
     return c.hex;
   }
 
-  selectItem(state.item);
+  // ?urun=<id> ile belirli bir ürün seçili açılabilir (ör. ürün sayfasından bağlantı vermek için)
+  const wanted = Number(new URLSearchParams(location.search).get('urun'));
+  selectItem(cfg.items.find((it) => it.id === wanted) || state.item);
 })();

@@ -1,0 +1,32 @@
+{% extends "panel/base.html" %}
+{% block title %}Mağaza ayarları{% endblock %}
+{% block content %}
+<div class="pagehead"><div class="grow"><h1>Mağaza ayarları</h1><p>Müşterilerin gördüğü mağaza bilgileri.</p></div></div>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% for e in form.non_field_errors %}<div class="flash error">{{ e }}</div>{% endfor %}
+  <div class="cols">
+    <div class="card">
+      <h2>Vitrin</h2>
+      {% include "panel/_field.html" with field=form.name %}
+      {% include "panel/_field.html" with field=form.tagline %}
+      {% include "panel/_field.html" with field=form.description %}
+      {% if request.shop.logo %}<img src="{{ request.shop.logo.url }}" alt="Mevcut logo" style="width:64px;height:64px;border-radius:14px;object-fit:cover;margin-bottom:8px">{% endif %}
+      {% include "panel/_field.html" with field=form.logo %}
+      {% include "panel/_field.html" with field=form.accent_color %}
+    </div>
+    <div class="card">
+      <h2>İletişim</h2>
+      {% include "panel/_field.html" with field=form.whatsapp %}
+      {% include "panel/_field.html" with field=form.phone %}
+      {% include "panel/_field.html" with field=form.instagram %}
+      {% include "panel/_field.html" with field=form.address %}
+      {% include "panel/_field.html" with field=form.working_hours %}
+      <h2 style="margin:20px 0 12px">Seçenekler</h2>
+      {% include "panel/_field.html" with field=form.show_prices %}
+      {% include "panel/_field.html" with field=form.custom_enabled %}
+    </div>
+  </div>
+  <div class="savebar"><button class="btn" type="submit">Kaydet</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "panel/base.html" %}
+{% block title %}Kategoriler{% endblock %}
+{% block content %}
+<div class="pagehead"><div class="grow"><h1>Kategoriler</h1><p>Müşteriler ürünleri bu başlıklara göre süzer. Sıra numarası küçük olan önce görünür.</p></div></div>
+<div class="cols wide-left">
+  <div>
+    {% if objects %}
+    <ul class="list">
+      {% for c in objects %}
+      <li>
+        <div class="grow"><strong>{{ c.name }}</strong><small>{{ c.n }} ürün · sıra {{ c.order }}</small></div>
+        <div class="actions">
+          <a class="btn ghost sm" href="{% url 'panel:edit' 'kategori' c.pk %}">Düzenle</a>
+          <form class="inline" method="post" action="{% url 'panel:delete' 'kategori' c.pk %}" onsubmit="return confirm('Kategori silinsin mi? İçindeki ürünler silinmez, kategorisiz kalır.')">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<div class="empty"><strong>Henüz kategori yok</strong>Örn. “Nevresim”, “Havlu”, “Ütü”, “Mutfak”.</div>{% endif %}
+  </div>
+  <form class="card" method="post">
+    <h2>Yeni kategori</h2>
+    {% include "panel/_form.html" %}
+    <button class="btn" type="submit">Ekle</button>
+  </form>
+</div>
+{% endblock %}

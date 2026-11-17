@@ -120,6 +120,9 @@ class Category(models.Model):
         if not self.slug:
             self.slug = unique_slug(self.shop.categories.all(), self.name, "kategori")
         super().save(*args, **kwargs)
+        # Kategori adı ürün aramasına dahil; ad değişince ürünlerin arama metni yenilenir.
+        for product in self.products.all():
+            product.save(update_fields=["search_text"])
 
 
 class Product(models.Model):
@@ -191,7 +194,9 @@ class Product(models.Model):
         if not self.slug:
             self.slug = unique_slug(self.shop.products.all(), self.name)
         cat = self.category.name if self.category_id else ""
-        self.search_text = normalize(f"{self.name} {self.sku} {cat} {self.colors} {self.description}")
+        self.search_text = normalize(
+            f"{self.name} {self.sku} {cat} {self.colors} {self.sizes} {self.description} {self.specs}"
+        )
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

@@ -229,6 +229,8 @@ h1, h2, h3 { line-height: 1.2; margin: 0; letter-spacing: -.015em; text-wrap: ba
   width: 100%; height: 42px; border-radius: 10px; border: 1px solid var(--line); padding: 0 34px 0 10px;
   font-weight: 700; font-variant-numeric: tabular-nums; background: #fff;
 }
+.dim .num input::-webkit-outer-spin-button, .dim .num input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.dim .num input { -moz-appearance: textfield; appearance: textfield; }
 .dim .num::after { content: "cm"; position: absolute; right: 10px; top: 11px; font-size: 13px; color: var(--muted); }
 .part { margin-top: 14px; }
 .part:first-of-type { margin-top: 0; }

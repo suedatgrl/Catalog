@@ -1,0 +1,85 @@
+{% extends "panel/base.html" %}
+{% block title %}{% if product %}{{ product.name }}{% else %}Yeni ürün{% endif %}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div class="grow">
+    <a class="muted small" href="{% url 'panel:products' %}">← Ürünler</a>
+    <h1>{% if product %}{{ product.name }}{% else %}Yeni ürün{% endif %}</h1>
+  </div>
+  {% if product %}
+  <a class="btn ghost sm" href="{{ product.get_absolute_url }}" target="_blank" rel="noopener">Mağazada gör ↗</a>
+  <a class="btn ghost sm" href="{% url 'panel:qr' %}?u={{ product.pk }}">Raf etiketi (QR)</a>
+  {% endif %}
+</div>
+
+{% if not has_categories %}
+<div class="tip">Henüz kategoriniz yok. Ürünleri gruplamak için <a class="link" href="{% url 'panel:categories' %}">kategori ekleyebilirsiniz</a> (zorunlu değil).</div>
+{% endif %}
+
+{# Fotoğraf silme/kapak düğmeleri ana formun dışındaki bu formlara bağlanır (form içinde form olmaz). #}
+{% for img in images %}
+<form id="del-{{ img.pk }}" method="post" action="{% url 'panel:image_delete' img.pk %}">{% csrf_token %}</form>
+<form id="cov-{{ img.pk }}" method="post" action="{% url 'panel:image_cover' img.pk %}">{% csrf_token %}</form>
+{% endfor %}
+
+<form method="post" enctype="multipart/form-data" id="product-form">
+  {% csrf_token %}
+  {% for e in form.non_field_errors %}<div class="flash error">{{ e }}</div>{% endfor %}
+  <div class="cols wide-left">
+    <div>
+      <div class="card">
+        <h2>Temel bilgiler</h2>
+        {% include "panel/_field.html" with field=form.name %}
+        {% include "panel/_field.html" with field=form.category %}
+        <div class="row2">
+          {% include "panel/_field.html" with field=form.price %}
+          {% include "panel/_field.html" with field=form.old_price %}
+        </div>
+        {% include "panel/_field.html" with field=form.description %}
+      </div>
+      <div class="card">
+        <h2>Seçenekler ve özellikler</h2>
+        {% include "panel/_field.html" with field=form.sizes %}
+        {% include "panel/_field.html" with field=form.colors %}
+        {% include "panel/_field.html" with field=form.specs %}
+        {% include "panel/_field.html" with field=form.sku %}
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h2>Fotoğraflar</h2>
+        {% if images %}
+        <div class="photos">
+          {% for img in images %}
+          <div class="photo">
+            <img src="{{ img.thumb.url }}" alt="Fotoğraf {{ forloop.counter }}">
+            {% if forloop.first %}<span class="cover">Kapak</span>{% endif %}
+            <div class="bar">
+              {% if not forloop.first %}<button type="submit" form="cov-{{ img.pk }}">Kapak yap</button>{% endif %}
+              <button type="submit" class="del" form="del-{{ img.pk }}" onclick="return confirm('Bu fotoğraf silinsin mi?')">Sil</button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% include "panel/_field.html" with field=form.new_images %}
+        <p class="muted small" style="margin:-6px 0 0">Telefonla çektiğiniz fotoğrafları doğrudan seçebilirsiniz; otomatik küçültülür. Birden fazla seçilebilir.</p>
+      </div>
+      <div class="card">
+        <h2>Durum</h2>
+        {% include "panel/_field.html" with field=form.is_active %}
+        {% include "panel/_field.html" with field=form.in_stock %}
+        {% include "panel/_field.html" with field=form.is_featured %}
+      </div>
+    </div>
+  </div>
+
+  <div class="savebar">
+    <button class="btn" type="submit">Kaydet</button>
+    {% if not product %}<button class="btn ghost" type="submit" name="save_new" value="1">Kaydet ve yeni ekle</button>{% endif %}
+    <span class="spacer"></span>
+    {% if product %}<button class="btn danger" type="submit" form="delete-form" onclick="return confirm('“{{ product.name|escapejs }}” kalıcı olarak silinsin mi?')">Ürünü sil</button>{% endif %}
+  </div>
+</form>
+{% if product %}<form id="delete-form" method="post" action="{% url 'panel:product_delete' product.pk %}">{% csrf_token %}</form>{% endif %}
+{% endblock %}

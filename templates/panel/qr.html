@@ -1,0 +1,37 @@
+{% extends "panel/base.html" %}
+{% block title %}QR kod{% endblock %}
+{% block content %}
+{% with qs=product|yesno:"1," %}
+<div class="pagehead">
+  <div class="grow">
+    {% if product %}<a class="muted small" href="{% url 'panel:product_edit' product.pk %}">← {{ product.name }}</a>{% endif %}
+    <h1>{% if product %}Raf etiketi{% else %}Mağaza QR kodu{% endif %}</h1>
+    <p>{% if product %}Bu kodu ürünün rafına ya da etiketine yapıştırın; okutan müşteri doğrudan bu ürünü görür.{% else %}Müşteriler bu kodu telefon kamerasıyla okutunca kataloğunuz açılır.{% endif %}</p>
+  </div>
+</div>
+<div class="cols">
+  <div class="card qrbox">
+    <img src="{% url 'panel:qr_image' 'svg' %}{% if product %}?u={{ product.pk }}{% endif %}" alt="QR kod">
+    <span class="url">{{ qr_url }}</span>
+    <div class="actions" style="justify-content:center">
+      <a class="btn" href="{% url 'panel:qr_image' 'png' %}?indir=1{% if product %}&u={{ product.pk }}{% endif %}">PNG indir</a>
+      <a class="btn ghost" href="{% url 'panel:qr_image' 'svg' %}?indir=1{% if product %}&u={{ product.pk }}{% endif %}">SVG indir (matbaa)</a>
+    </div>
+  </div>
+  <div class="card">
+    {% if not product %}
+    <h2>Hazır afiş</h2>
+    <p class="muted">Mağaza adınız ve QR kodunuzla A4 afiş. Yazdırıp kasaya, vitrine veya kabinlere asabilirsiniz.</p>
+    <a class="btn" href="{% url 'panel:qr_poster' %}" target="_blank" rel="noopener">Afişi aç ve yazdır</a>
+    <h2 style="margin-top:22px">İpuçları</h2>
+    {% else %}<h2>İpuçları</h2>{% endif %}
+    <ul class="muted" style="padding-left:18px;margin:8px 0 0">
+      <li>Kod en az 3 × 3 cm basılırsa rahat okunur.</li>
+      <li>Mağaza adresiniz değişse bile basılı kodlar çalışmaya devam eder.</li>
+      <li>Okutma sayısını “Özet” sayfasında görebilirsiniz.</li>
+      {% if not product %}<li>Her ürün için ayrı raf etiketi de alabilirsiniz: ürünü açıp “Raf etiketi (QR)” düğmesine basın.</li>{% endif %}
+    </ul>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}

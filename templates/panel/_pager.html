@@ -1,7 +1,7 @@
 {% if page.paginator.num_pages > 1 %}
 <div class="pager">
-  {% if page.has_previous %}<a class="btn ghost sm" href="?{% querystring sayfa=page.previous_page_number %}">← Önceki</a>{% endif %}
+  {% if page.has_previous %}<a class="btn ghost sm" href="{% querystring sayfa=page.previous_page_number %}">← Önceki</a>{% endif %}
   <span class="muted small">{{ page.number }} / {{ page.paginator.num_pages }}</span>
-  {% if page.has_next %}<a class="btn ghost sm" href="?{% querystring sayfa=page.next_page_number %}">Sonraki →</a>{% endif %}
+  {% if page.has_next %}<a class="btn ghost sm" href="{% querystring sayfa=page.next_page_number %}">Sonraki →</a>{% endif %}
 </div>
 {% endif %}

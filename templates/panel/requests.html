@@ -1,0 +1,38 @@
+{% extends "panel/base.html" %}
+{% load catalog_extras %}
+{% block title %}Talepler{% endblock %}
+{% block content %}
+<div class="pagehead"><div class="grow"><h1>Özel dikim talepleri</h1><p>Müşterilerin özel dikim sayfasından gönderdiği teklif istekleri.</p></div></div>
+{% if requests %}
+<ul class="list">
+  {% for r in requests %}
+  <li class="wrapline" style="align-items:flex-start">
+    <div class="grow req">
+      <div>
+        <strong style="display:inline">{{ r.customer_name }}</strong>
+        <span class="tagx {% if r.status == 'yeni' %}warn{% elif r.status == 'tamam' %}ok{% endif %}">{{ r.get_status_display }}</span>
+        <small class="muted"> · {{ r.created_at|date:"j F Y H:i" }}</small>
+      </div>
+      <dl>
+        <dt>Ürün</dt><dd>{{ r.item_name }}</dd>
+        {% for k, v in r.dims.items %}<dt>{{ k }}</dt><dd>{{ v }} cm</dd>{% endfor %}
+        {% for k, v in r.colors.items %}<dt>{{ k }}</dt><dd>{{ v }}</dd>{% endfor %}
+        {% if r.note %}<dt>Not</dt><dd>{{ r.note }}</dd>{% endif %}
+      </dl>
+    </div>
+    <div class="actions">
+      <a class="btn sm" href="tel:{{ r.phone|cut:' ' }}">Ara: {{ r.phone }}</a>
+      {% if r.wa_number %}<a class="btn ghost sm" target="_blank" rel="noopener" href="{% wa_link r.wa_number 'Merhaba, özel dikim talebiniz için yazıyorum.' %}">WhatsApp</a>{% endif %}
+      <form class="inline" method="post" action="{% url 'panel:request_status' r.pk %}">{% csrf_token %}
+        {% for value, text in statuses %}{% if value != r.status %}<button class="btn ghost sm" name="status" value="{{ value }}">{{ text }} yap</button>{% endif %}{% endfor %}
+        <button class="btn danger sm" name="action" value="delete" onclick="return confirm('Talep silinsin mi?')">Sil</button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% include "panel/_pager.html" with page=requests %}
+{% else %}
+<div class="empty"><strong>Henüz talep yok</strong>Müşteriler özel dikim sayfasından teklif istediğinde burada görünür.</div>
+{% endif %}
+{% endblock %}

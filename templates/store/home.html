@@ -5,12 +5,12 @@
 {% if not filtered %}
 <section class="hero">
   <h1>{{ shop.tagline|default:shop.name }}</h1>
-  {% if shop.working_hours %}<p>Bugün de buradayız · {{ shop.working_hours }}</p>{% endif %}
+  {% if shop.working_hours %}<p>Çalışma saatleri: {{ shop.working_hours }}</p>{% endif %}
 </section>
 {% endif %}
 
 <form class="search" method="get" role="search">
-  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.500-3.500"/></svg>
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
   <input type="search" name="q" value="{{ q }}" placeholder="Ürün ara… (ör. nevresim, ütü)" aria-label="Ürün ara" enterkeyhint="search" autocomplete="off">
   {% if category %}<input type="hidden" name="kategori" value="{{ category.slug }}">{% endif %}
   {% if q %}<a class="clear" href="?{% if category %}kategori={{ category.slug }}{% endif %}" aria-label="Aramayı temizle">×</a>{% endif %}

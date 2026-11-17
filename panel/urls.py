@@ -8,7 +8,7 @@ app_name = "panel"
 urlpatterns = [
     path("giris/", auth_views.LoginView.as_view(template_name="panel/login.html", redirect_authenticated_user=True), name="login"),
     path("cikis/", auth_views.LogoutView.as_view(), name="logout"),
-    path("sifre/", views.PasswordView.as_view(success_url=reverse_lazy("panel:dashboard")), name="password"),
+    path("sifre/", views.panel_view(views.PasswordView.as_view(success_url=reverse_lazy("panel:dashboard"))), name="password"),
     path("", views.dashboard, name="dashboard"),
     path("magaza-sec/", views.switch_shop, name="switch"),
     path("urunler/", views.product_list, name="products"),

@@ -1,0 +1,28 @@
+{% extends "panel/base.html" %}
+{% block title %}Renk kartelası{% endblock %}
+{% block content %}
+<div class="pagehead"><div class="grow"><h1>Renk kartelası</h1><p>Özel dikim sayfasında müşterinin seçebileceği kumaş ve renkler.</p></div></div>
+<div class="cols wide-left">
+  <div>
+    {% if objects %}
+    <ul class="list">
+      {% for c in objects %}
+      <li>
+        <span class="dot" style="background-color: {{ c.hex }};{% if c.image %} background-image: url('{{ c.image.url }}');{% endif %}"></span>
+        <div class="grow"><strong>{{ c.name }}</strong><small>{% if c.image %}Kumaş fotoğrafı{% else %}{{ c.get_pattern_display }}{% endif %}</small></div>
+        <div class="actions">
+          <a class="btn ghost sm" href="{% url 'panel:edit' 'renk' c.pk %}">Düzenle</a>
+          <form class="inline" method="post" action="{% url 'panel:delete' 'renk' c.pk %}" onsubmit="return confirm('Bu renk silinsin mi?')">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<div class="empty"><strong>Kartelanız boş</strong>Özel dikim sayfasının açılması için en az bir renk ekleyin.</div>{% endif %}
+  </div>
+  <form class="card" method="post" enctype="multipart/form-data">
+    <h2>Yeni renk / kumaş</h2>
+    {% include "panel/_form.html" %}
+    <button class="btn" type="submit">Ekle</button>
+  </form>
+</div>
+{% endblock %}
