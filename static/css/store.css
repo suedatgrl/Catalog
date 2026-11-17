@@ -3,7 +3,7 @@
    satış bandı, rozet ve bağıran renk yok. Renkler mağazanın temasından gelir
    (catalog/themes.py → <body style="--bg: …">). Önce telefon için tasarlandı. */
 :root {
-  --bg: #f6f0e7; --surface: #fffdf9; --ink: #2a2420; --muted: #6d6258; --line: #e7dccb;
+  --bg: #faf7f3; --surface: #fffdf9; --ink: #2a2420; --muted: #6d6258; --line: #ece3d6;
   --accent: #9a5a3a; --on: #fffaf4; --soft: #eadfcf; --deep: #6b3b22;
   --r: 18px; --r-lg: 32px;
   --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;

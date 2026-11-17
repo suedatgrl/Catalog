@@ -13,33 +13,33 @@ Yazı renkleri zeminde en az ~5:1 kontrast verir.
 THEMES = {
     "kum": {
         "name": "Kum", "scheme": "light",
-        "bg": "#f6f0e7", "surface": "#fffdf9", "ink": "#2a2420", "muted": "#6d6258",
-        "line": "#e7dccb", "accent": "#9a5a3a", "on": "#fffaf4", "soft": "#eadfcf", "deep": "#6b3b22",
+        "bg": "#faf8f3", "surface": "#fffdf9", "ink": "#2a2420", "muted": "#6d6258",
+        "line": "#ede5d8", "accent": "#9a5a3a", "on": "#fffaf4", "soft": "#f0e9dd", "deep": "#6b3b22",
     },
     "orman": {
         "name": "Zeytin", "scheme": "light",
-        "bg": "#f1f2ea", "surface": "#fbfbf6", "ink": "#232820", "muted": "#666c5b",
-        "line": "#dcdecd", "accent": "#59683f", "on": "#fbfbf6", "soft": "#e1e5cf", "deep": "#39461f",
+        "bg": "#f8f8f4", "surface": "#fbfbf6", "ink": "#232820", "muted": "#666c5b",
+        "line": "#e5e6da", "accent": "#59683f", "on": "#fbfbf6", "soft": "#eaeddd", "deep": "#39461f",
     },
     "okyanus": {
         "name": "Sis", "scheme": "light",
-        "bg": "#edf1f3", "surface": "#fafcfc", "ink": "#1d272c", "muted": "#5f6e76",
-        "line": "#d6dee2", "accent": "#456a7c", "on": "#fafcfc", "soft": "#d9e5eb", "deep": "#2b4857",
+        "bg": "#f6f8f9", "surface": "#fafcfc", "ink": "#1d272c", "muted": "#5f6e76",
+        "line": "#e0e6e9", "accent": "#456a7c", "on": "#fafcfc", "soft": "#e4edf1", "deep": "#2b4857",
     },
     "lavanta": {
         "name": "Lavanta", "scheme": "light",
-        "bg": "#f3f0f7", "surface": "#fcfbfe", "ink": "#241f2e", "muted": "#6a6277",
-        "line": "#e2dcec", "accent": "#67508f", "on": "#fcfbfe", "soft": "#e6def2", "deep": "#40305f",
+        "bg": "#f9f8fb", "surface": "#fcfbfe", "ink": "#241f2e", "muted": "#6a6277",
+        "line": "#e9e5f1", "accent": "#67508f", "on": "#fcfbfe", "soft": "#eee8f6", "deep": "#40305f",
     },
     "gul": {
         "name": "Pudra", "scheme": "light",
-        "bg": "#f8eeea", "surface": "#fffaf8", "ink": "#2d2020", "muted": "#7a5f61",
-        "line": "#ecdad5", "accent": "#a85a62", "on": "#fffaf8", "soft": "#f2d8d5", "deep": "#733a41",
+        "bg": "#fcf6f4", "surface": "#fffaf8", "ink": "#2d2020", "muted": "#7a5f61",
+        "line": "#f1e3e0", "accent": "#a85a62", "on": "#fffaf8", "soft": "#f6e4e2", "deep": "#733a41",
     },
     "komur": {
         "name": "Mermer", "scheme": "light",
-        "bg": "#f3f3f1", "surface": "#ffffff", "ink": "#161616", "muted": "#666663",
-        "line": "#e2e2de", "accent": "#1c1c1c", "on": "#ffffff", "soft": "#e7e7e3", "deep": "#3b3b39",
+        "bg": "#f9f9f8", "surface": "#ffffff", "ink": "#161616", "muted": "#666663",
+        "line": "#e9e9e6", "accent": "#1c1c1c", "on": "#ffffff", "soft": "#eeeeeb", "deep": "#3b3b39",
     },
     "gece": {
         "name": "Gece & Altın", "scheme": "dark",
