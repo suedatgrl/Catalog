@@ -133,8 +133,8 @@ class Command(BaseCommand):
     help = "Örnek bir mağaza, ürünler, renk kartelası ve panel kullanıcısı oluşturur."
 
     def add_arguments(self, parser):
-        parser.add_argument("--slug", default="ornek-magaza", help="Mağaza adresi")
-        parser.add_argument("--ad", default="Örnek Tekstil & Ev", help="Mağaza adı")
+        parser.add_argument("--slug", default="ornek-vitrin", help="Mağaza adresi")
+        parser.add_argument("--ad", default="Atölye Ev & Tekstil", help="Mağaza adı")
         parser.add_argument("--tema", default="kum", help="Tema anahtarı (kum, orman, okyanus, lavanta, gul, komur, gece)")
 
     def handle(self, *args, **options):

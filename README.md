@@ -55,7 +55,7 @@ python3 -m venv .venv
 .venv/bin/python manage.py runserver 0.0.0.0:8000
 ```
 
-`demo_yukle` şunları kurar: `/ornek-magaza/` mağazası, ürünler, renk kartelası, özel dikim ürünleri ve
+`demo_yukle` şunları kurar: `/ornek-vitrin/` mağazası, ürünler, renk kartelası, özel dikim ürünleri ve
 **`demo` / `demo12345`** kullanıcısı. Bilinen şifre içerdiği için **üretimde çalıştırmayın.**
 
 ### Telefondan deneme
