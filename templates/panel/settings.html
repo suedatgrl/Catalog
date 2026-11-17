@@ -13,7 +13,24 @@
       {% include "panel/_field.html" with field=form.description %}
       {% if request.shop.logo %}<img src="{{ request.shop.logo.url }}" alt="Mevcut logo" style="width:64px;height:64px;border-radius:14px;object-fit:cover;margin-bottom:8px">{% endif %}
       {% include "panel/_field.html" with field=form.logo %}
-      {% include "panel/_field.html" with field=form.accent_color %}
+      <div class="fld">
+        <label>Tema</label>
+        <span class="help">Müşterilerin gördüğü sayfanın renkleri. Hepsi birbiriyle uyumlu hazır paletlerdir.</span>
+        <div class="themes">
+          {% for key, t in themes.items %}
+          <label class="theme">
+            <input type="radio" name="theme" value="{{ key }}" {% if form.theme.value == key %}checked{% endif %}>
+            <span class="swatch" style="background: {{ t.bg }}">
+              <i style="background: linear-gradient(140deg, {{ t.accent }}, {{ t.deep }})"></i>
+              <b style="background: {{ t.surface }}; box-shadow: inset 0 0 0 1px {{ t.line }}"></b>
+              <b style="background: {{ t.ink }}"></b>
+            </span>
+            <span class="tname">{{ t.name }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% for e in form.theme.errors %}<span class="err">{{ e }}</span>{% endfor %}
+      </div>
     </div>
     <div class="card">
       <h2>İletişim</h2>

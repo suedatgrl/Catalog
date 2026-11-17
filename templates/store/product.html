@@ -5,10 +5,11 @@
 {% block og_title %}{{ product.name }}{% endblock %}
 {% block og %}{% if images %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ images.0.image.url }}">{% endif %}{% endblock %}
 {% block nav_products %}on{% endblock %}
-{% block fab %}{% endblock %}
+{% block body_class %}has-cta{% endblock %}
+{% block tabbar %}{% endblock %}
 
 {% block content %}
-<a class="back" href="{{ shop.get_absolute_url }}{% if product.category %}?kategori={{ product.category.slug }}{% endif %}">← {% if product.category %}{{ product.category.name }}{% else %}Tüm ürünler{% endif %}</a>
+<a class="back" href="{{ shop.get_absolute_url }}{% if product.category %}?kategori={{ product.category.slug }}{% endif %}"><span aria-hidden="true">←</span> {% if product.category %}{{ product.category.name }}{% else %}Tüm ürünler{% endif %}</a>
 
 <article class="product">
   <div class="gallery">
@@ -27,10 +28,10 @@
     <h1>{{ product.name }}</h1>
 
     {% if shop.show_prices and product.price is not None %}
-    <div class="price">{{ product.price|tl }}{% if product.discount_percent %}<s>{{ product.old_price|tl }}</s><span class="pill off">%{{ product.discount_percent }} indirim</span>{% endif %}</div>
+    <div class="price">{{ product.price|tl }}{% if product.discount_percent %}<s>{{ product.old_price|tl }}</s><span class="pill off">%{{ product.discount_percent }}</span>{% endif %}</div>
     {% endif %}
     <span class="pill {% if product.in_stock %}ok{% else %}no{% endif %}">{% if product.in_stock %}Mağazada mevcut{% else %}Şu an tükendi{% endif %}</span>
-    {% if product.sku %}<span class="muted" style="font-size:13px;margin-left:8px">Kod: {{ product.sku }}</span>{% endif %}
+    {% if product.sku %}<span class="sku">Kod: {{ product.sku }}</span>{% endif %}
 
     {% if product.size_list %}
     <div class="opts"><h3>Beden / ölçü</h3><div class="tags">{% for s in product.size_list %}<span class="tag">{{ s }}</span>{% endfor %}</div></div>

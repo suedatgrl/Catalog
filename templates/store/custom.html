@@ -2,10 +2,10 @@
 {% load static %}
 {% block title %}Özel dikim · {{ shop.name }}{% endblock %}
 {% block nav_custom %}on{% endblock %}
-{% block fab %}{% endblock %}
+{% block tab_custom %}on{% endblock %}
 
 {% block content %}
-<section class="hero">
+<section class="hero plain">
   <h1>Ölçünüze özel dikim</h1>
   <p>Ölçünüzü girin, rengini seçin; nasıl duracağını hemen görün. Beğenirseniz talebinizi bize iletin.</p>
 </section>
@@ -41,12 +41,14 @@
       <h2><span class="n">4</span> Teklif isteyin</h2>
       <input type="hidden" name="item"><input type="hidden" name="dims"><input type="hidden" name="parts">
       <div class="hp" aria-hidden="true"><label>Web sitesi <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+      <p class="fine" style="margin:0">İki yol var: aşağıya adınızı ve telefonunuzu yazıp gönderin, biz sizi arayalım; ya da seçtiğiniz ölçü ve renkleri hazır mesaj olarak WhatsApp'tan bize yollayın.</p>
       <div class="field"><label for="cn">Adınız soyadınız</label><input id="cn" name="customer_name" required maxlength="80" autocomplete="name"></div>
       <div class="field"><label for="ph">Telefon numaranız</label><input id="ph" name="phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
       <div class="field"><label for="nt">Notunuz (isteğe bağlı)</label><textarea id="nt" name="note" rows="2" maxlength="300"></textarea></div>
       <div class="cta">
-        <button class="btn block" type="submit">Talebi gönder</button>
-        {% if shop.wa_number %}<a class="btn wa block" id="wa-send" target="_blank" rel="noopener" href="#">{% include "store/_wa.svg" %} WhatsApp ile gönder</a>{% endif %}
+        <button class="btn block" type="submit">Talebi gönder — sizi arayalım</button>
+        {% if shop.wa_number %}<span class="or">ya da</span>
+        <a class="btn wa block" id="wa-send" target="_blank" rel="noopener" href="#">{% include "store/_wa.svg" %} Ölçüleri WhatsApp'tan gönder</a>{% endif %}
       </div>
       <p class="fine">Görsel ve fiyat fikir vermesi içindir; kesin ölçü ve fiyat mağazada netleşir. Bilgileriniz yalnızca bu talep için {{ shop.name }} ile paylaşılır.</p>
     </form>

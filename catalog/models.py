@@ -7,7 +7,8 @@ from django.dispatch import receiver
 from django.urls import reverse
 
 from .kinds import KIND_CHOICES, KINDS
-from .utils import make_code, normalize, text_on, tr_slugify, unique_slug, whatsapp_number
+from .themes import DEFAULT_THEME, THEME_CHOICES, css_vars, get_theme
+from .utils import make_code, normalize, tr_slugify, unique_slug, whatsapp_number
 
 RESERVED_SLUGS = {"panel", "admin", "q", "media", "static", "giris", "api", "hakkinda"}
 
@@ -36,9 +37,7 @@ class Shop(models.Model):
     instagram = models.CharField("Instagram kullanıcı adı", max_length=40, blank=True)
     address = models.CharField("Adres (açık)", max_length=200, blank=True)
     working_hours = models.CharField("Çalışma saatleri", max_length=80, blank=True)
-    accent_color = models.CharField(
-        "Tema rengi", max_length=7, default="#0f766e", validators=[hex_validator]
-    )
+    theme = models.CharField("Tema", max_length=20, choices=THEME_CHOICES, default=DEFAULT_THEME)
     show_prices = models.BooleanField("Fiyatları göster", default=True)
     custom_enabled = models.BooleanField("Özel dikim sayfası açık", default=True)
     is_active = models.BooleanField("Yayında", default=True)
@@ -72,8 +71,20 @@ class Shop(models.Model):
         return reverse("catalog:shop", args=[self.slug])
 
     @property
+    def theme_info(self):
+        return get_theme(self.theme)
+
+    @property
+    def theme_style(self):
+        return css_vars(self.theme)
+
+    @property
+    def accent_color(self):
+        return self.theme_info["accent"]
+
+    @property
     def accent_text(self):
-        return text_on(self.accent_color)
+        return self.theme_info["on"]
 
     @property
     def wa_number(self):

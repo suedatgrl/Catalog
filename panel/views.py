@@ -3,6 +3,7 @@ from functools import wraps
 from io import BytesIO
 
 import segno
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView
@@ -17,6 +18,7 @@ from django.views.decorators.http import require_POST
 from catalog.models import (
     Category, CustomItem, CustomRequest, FabricColor, Product, ProductImage, Shop,
 )
+from catalog.themes import THEMES
 from catalog.utils import process_image, search_words, site_url
 
 from .forms import CategoryForm, CustomItemForm, FabricColorForm, ProductForm, ShopSettingsForm
@@ -274,7 +276,7 @@ def shop_settings(request):
         form.save()
         messages.success(request, "Mağaza bilgileri güncellendi.")
         return redirect("panel:settings")
-    return render(request, "panel/settings.html", {"form": form})
+    return render(request, "panel/settings.html", {"form": form, "themes": THEMES})
 
 
 def _qr_target(request):
@@ -316,7 +318,8 @@ def qr_page(request):
     product = (
         request.shop.products.filter(pk=product_id).first() if product_id.isdigit() else None
     )
-    return render(request, "panel/qr.html", {"qr_url": url, "product": product})
+    context = {"qr_url": url, "product": product, "needs_site_url": not settings.SITE_URL}
+    return render(request, "panel/qr.html", context)
 
 
 @panel_view

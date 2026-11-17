@@ -9,6 +9,9 @@
     <p>{% if product %}Bu kodu ürünün rafına ya da etiketine yapıştırın; okutan müşteri doğrudan bu ürünü görür.{% else %}Müşteriler bu kodu telefon kamerasıyla okutunca kataloğunuz açılır.{% endif %}</p>
   </div>
 </div>
+{% if needs_site_url %}
+<div class="tip"><b>Deneme modu:</b> Kod şu an bu bilgisayarın yerel ağ adresine gidiyor (<code>{{ qr_url }}</code>). Telefonunuz aynı Wi-Fi ağındaysa okutunca açılır; dışarıdan açılmaz. Site gerçek alan adıyla yayına alındıktan sonra kodu yeniden indirip öyle bastırın.</div>
+{% endif %}
 <div class="cols">
   <div class="card qrbox">
     <img src="{% url 'panel:qr_image' 'svg' %}{% if product %}?u={{ product.pk }}{% endif %}" alt="QR kod">

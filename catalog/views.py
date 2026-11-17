@@ -62,6 +62,12 @@ def shop_home(request, slug):
         return render(request, "store/_cards.html", {"shop": shop, "products": page})
 
     filtered = bool(q or category)
+    featured = []
+    if not filtered:
+        featured = (
+            shop.products.filter(is_active=True, is_featured=True)
+            .select_related("shop").prefetch_related("images")[:10]
+        )
     context = {
         "shop": shop,
         "products": page,
@@ -69,6 +75,7 @@ def shop_home(request, slug):
         "q": q,
         "category": category,
         "filtered": filtered,
+        "featured": featured,
         "has_custom": _has_custom(shop),
     }
     return render(request, "store/home.html", context)

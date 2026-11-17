@@ -104,12 +104,12 @@ class ShopSettingsForm(forms.ModelForm):
     class Meta:
         model = Shop
         fields = [
-            "name", "tagline", "description", "logo", "accent_color", "phone", "whatsapp",
+            "name", "tagline", "description", "logo", "theme", "phone", "whatsapp",
             "instagram", "address", "working_hours", "show_prices", "custom_enabled",
         ]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 3}),
-            "accent_color": forms.TextInput(attrs={"type": "color"}),
+            "theme": forms.RadioSelect,
             "logo": forms.FileInput(attrs={"accept": "image/*"}),
         }
 

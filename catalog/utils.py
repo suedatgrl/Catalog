@@ -1,5 +1,6 @@
 import re
 import secrets
+import socket
 import unicodedata
 import uuid
 from io import BytesIO
@@ -86,15 +87,25 @@ def whatsapp_number(raw):
     return digits
 
 
-def site_url(request):
-    return settings.SITE_URL or f"{request.scheme}://{request.get_host()}"
-
-
-def text_on(hex_color):
-    """Verilen zemin renginin üstünde okunaklı yazı rengi."""
+def lan_ip():
+    """Bu bilgisayarın yerel ağdaki adresi (ör. 192.168.1.9). Bulunamazsa boş döner."""
     try:
-        h = hex_color.lstrip("#")
-        r, g, b = (int(h[i : i + 2], 16) for i in (0, 2, 4))
-    except (ValueError, AttributeError):
-        return "#ffffff"
-    return "#111827" if (0.299 * r + 0.587 * g + 0.114 * b) > 165 else "#ffffff"
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("10.255.255.255", 1))  # paket gönderilmez; yalnızca çıkış arayüzü öğrenilir
+            return s.getsockname()[0]
+    except OSError:
+        return ""
+
+
+def site_url(request):
+    """QR kodlara ve paylaşım bağlantılarına yazılacak kök adres."""
+    if settings.SITE_URL:
+        return settings.SITE_URL
+    host = request.get_host()
+    # Geliştirirken panel 127.0.0.1 üzerinden açılır ama telefon o adrese ulaşamaz;
+    # QR kod telefonda da çalışsın diye bilgisayarın ağ adresini yazarız.
+    if settings.DEBUG and host.split(":")[0] in ("127.0.0.1", "localhost"):
+        ip = lan_ip()
+        if ip and not ip.startswith("127."):
+            return f"http://{ip}:{request.get_port()}"
+    return f"{request.scheme}://{host}"

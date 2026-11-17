@@ -227,14 +227,18 @@ class PanelTests(Base):
 
     def test_settings_and_qr(self):
         r = self.client.post(reverse("panel:settings"), {
-            "name": "Ayşe Ev Tekstili", "accent_color": "#123456", "show_prices": "on", "logo": png("logo.png"),
+            "name": "Ayşe Ev Tekstili", "theme": "gece", "show_prices": "on", "logo": png("logo.png"),
         })
         self.assertRedirects(r, reverse("panel:settings"))
         self.shop.refresh_from_db()
         self.assertEqual(self.shop.name, "Ayşe Ev Tekstili")
         self.assertTrue(self.shop.logo.name.endswith(".webp"))
-        r = self.client.post(reverse("panel:settings"), {"name": "A", "accent_color": "kirmizi"})
-        self.assertEqual(r.status_code, 200)  # geçersiz renk reddedilir
+        self.assertEqual(self.shop.theme, "gece")
+        self.assertContains(self.client.get("/ayse/"), "color-scheme: dark")
+        r = self.client.post(reverse("panel:settings"), {"name": "A", "theme": "yok-boyle-tema"})
+        self.assertEqual(r.status_code, 200)  # tanımsız tema reddedilir
+        self.shop.refresh_from_db()
+        self.assertEqual(self.shop.theme, "gece")
 
         png_qr = self.client.get(reverse("panel:qr_image", args=["png"]))
         self.assertEqual(png_qr["Content-Type"], "image/png")

@@ -18,9 +18,9 @@ PRODUCTS = [
     ("Nevresim", "Lastikli Penye Çarşaf", 389, 449, "90x190, 160x200, 180x200", "Beyaz, Gri, Mint", "", "Her mevsim kullanılabilen esnek penye çarşaf.", False),
     ("Havlu & Bornoz", "Pamuklu Banyo Havlusu 70x140", 279, None, "", "Beyaz, Antrasit, Hardal", "Gramaj: 500 gr/m²", "", False),
     ("Havlu & Bornoz", "Kapüşonlu Bornoz", 899, 1099, "S/M, L/XL", "Beyaz, Lacivert", "", "Kalın dokulu, su emiciliği yüksek bornoz.", True),
-    ("Giyim", "Erkek Pamuklu Pijama Takımı", 549, None, "S, M, L, XL, XXL", "Lacivert, Gri", "", "", False),
-    ("Giyim", "Kadın Penye Gecelik", 329, 399, "S, M, L, XL", "Pudra, Mürdüm", "", "", False),
-    ("Giyim", "Çocuk Eşofman Takımı", 459, None, "4-5, 6-7, 8-9, 10-11 yaş", "Kırmızı, Lacivert", "", "", False),
+    ("Havlu & Bornoz", "Çocuk Bornozu", 459, None, "4-5, 6-7, 8-9, 10-11 yaş", "Sarı, Mavi", "", "", False),
+    ("Havlu & Bornoz", "El ve Yüz Havlusu 2'li Set", 249, 299, "", "Beyaz, Gri", "Gramaj: 450 gr/m²", "", False),
+    ("Ev Tekstili", "Kapitone Yatak Örtüsü", 1890, None, "Çift kişilik", "Ekru, Gri", "", "Çift taraflı kullanılabilir.", False),
     ("Küçük Ev Aletleri", "Buharlı Ütü 2400 W", 1749, 1999, "", "", "Güç: 2400 W\nTaban: Seramik\nSu haznesi: 300 ml\nGaranti: 2 yıl", "Güçlü şok buhar, damlatmaz taban.", True),
     ("Küçük Ev Aletleri", "Cam Su Isıtıcı 1,7 L", 899, None, "", "", "Güç: 2200 W\nHacim: 1,7 L\nGaranti: 2 yıl", "", False),
     ("Küçük Ev Aletleri", "El Blender Seti", 1299, 1499, "", "", "Güç: 1000 W\nParça: Çırpıcı, doğrayıcı, ölçü kabı\nGaranti: 2 yıl", "", False),
@@ -84,14 +84,14 @@ class Command(BaseCommand):
         shop = Shop.objects.create(
             name="Örnek Tekstil & Ev",
             slug="ornek-magaza",
-            tagline="Ev tekstili, giyim ve küçük ev aletleri",
-            description="1998'den beri mahallenizin tekstil ve ev gereçleri dükkânı. Ölçüye özel dikim yapılır.",
+            tagline="Ev tekstili ve küçük ev aletleri",
+            description="1998'den beri mahallenizin ev tekstili ve ev gereçleri dükkânı. Ölçüye özel dikim yapılır.",
             phone="0212 555 00 00",
             whatsapp="0532 555 00 00",
             instagram="ornektekstil",
             address="Çarşı Cad. No: 12, Kadıköy / İstanbul",
             working_hours="Pzt–Cmt 09:00–20:00",
-            accent_color="#9a3412",
+            theme="kum",
         )
         user, created = get_user_model().objects.get_or_create(username="demo")
         if created:

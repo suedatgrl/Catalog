@@ -1,11 +1,11 @@
 {% load catalog_extras %}{% for p in products %}
-<a class="card" href="{{ p.get_absolute_url }}">
+<a class="card{% if not p.in_stock %} out{% endif %}" href="{{ p.get_absolute_url }}">
   <div class="ph">
     {% with img=p.cover %}
     {% if img %}<img src="{{ img.thumb.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
     {% else %}<div class="noimg">{{ p.name|initial }}</div>{% endif %}
     {% endwith %}
-    {% if shop.show_prices and p.discount_percent %}<span class="badge">%{{ p.discount_percent }}</span>{% endif %}
+    {% if shop.show_prices and p.discount_percent %}<span class="badge">%{{ p.discount_percent }} indirim</span>{% endif %}
     {% if not p.in_stock %}<span class="badge out">Tükendi</span>{% endif %}
   </div>
   <div class="body">
