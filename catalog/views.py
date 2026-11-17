@@ -43,7 +43,7 @@ def _has_custom(shop):
 def shop_home(request, slug):
     shop = _shop(slug)
     products = (
-        shop.products.filter(is_active=True).select_related("shop").prefetch_related("images")
+        shop.products.filter(is_active=True).select_related("shop", "category").prefetch_related("images")
     )
 
     q = request.GET.get("q", "").strip()[:60]
@@ -62,12 +62,17 @@ def shop_home(request, slug):
         return render(request, "store/_cards.html", {"shop": shop, "products": page})
 
     filtered = bool(q or category)
-    featured = []
+    # Karşılama alanındaki kemer biçimli vitrin görselleri: en üstteki (öne çıkan) ürünlerin kapakları
+    hero_images = []
     if not filtered:
-        featured = (
-            shop.products.filter(is_active=True, is_featured=True)
-            .select_related("shop").prefetch_related("images")[:10]
-        )
+        for p in (
+            shop.products.filter(is_active=True).select_related("shop").prefetch_related("images")[:8]
+        ):
+            if p.cover:
+                hero_images.append(p.cover)
+            if len(hero_images) == 2:
+                break
+
     context = {
         "shop": shop,
         "products": page,
@@ -75,7 +80,7 @@ def shop_home(request, slug):
         "q": q,
         "category": category,
         "filtered": filtered,
-        "featured": featured,
+        "hero_images": hero_images,
         "has_custom": _has_custom(shop),
     }
     return render(request, "store/home.html", context)
@@ -95,7 +100,7 @@ def product_detail(request, slug, product_slug):
         "shop": shop,
         "product": product,
         "images": list(product.images.all()),
-        "related": related.select_related("shop").prefetch_related("images")[:6],
+        "related": related.select_related("shop", "category").prefetch_related("images")[:8],
         "page_url": request.build_absolute_uri(),
         "has_custom": _has_custom(shop),
     }

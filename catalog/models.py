@@ -252,7 +252,13 @@ class Product(models.Model):
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to=shop_upload)
-    thumb = models.ImageField(upload_to=shop_upload)
+    # Liste görünümü fotoğrafın doğal oranını kullanır (Pinterest tarzı akış); boyutlar
+    # kayıtta otomatik doldurulur, böylece sayfa yüklenirken yer kayması olmaz.
+    thumb = models.ImageField(
+        upload_to=shop_upload, width_field="thumb_w", height_field="thumb_h"
+    )
+    thumb_w = models.PositiveIntegerField(null=True, editable=False)
+    thumb_h = models.PositiveIntegerField(null=True, editable=False)
     order = models.PositiveIntegerField(default=0)
 
     upload_folder = "products"
@@ -263,6 +269,14 @@ class ProductImage(models.Model):
     @property
     def shop_ref(self):
         return self.product.shop.qr_code
+
+    @property
+    def ratio_css(self):
+        """CSS aspect-ratio değeri (genişlik/yükseklik). Çok uç oranlar sınırlanır ki akış dengeli kalsın.
+        Metin olarak döner: Türkçe yerelde ondalık virgül CSS'i bozardı."""
+        if self.thumb_w and self.thumb_h:
+            return f"{min(1.4, max(0.62, self.thumb_w / self.thumb_h)):.3f}"
+        return "0.800"
 
 
 class FabricColor(models.Model):

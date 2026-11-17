@@ -1,59 +1,62 @@
 {% extends "store/base.html" %}
 {% load static catalog_extras %}
 {% block nav_products %}on{% endblock %}
-{% block tab_products %}on{% endblock %}
 {% block content %}
 {% if not filtered %}
-<section class="hero">
-  <span class="eyebrow">Hoş geldiniz</span>
-  <h1>{{ shop.tagline|default:shop.name }}</h1>
-  <div class="quick">
-    {% if shop.working_hours %}<span>
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>{{ shop.working_hours }}</span>{% endif %}
-    {% if shop.address %}<a href="https://www.google.com/maps/search/?api=1&query={{ shop.address|urlencode }}" target="_blank" rel="noopener">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Yol tarifi</a>{% endif %}
-    {% if shop.phone %}<a href="tel:{{ shop.phone|cut:' ' }}">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.8 2z"/></svg>Ara</a>{% endif %}
+<section class="hero{% if not hero_images %} solo{% endif %}">
+  <div>
+    <span class="eyebrow">{% if shop.tagline %}{{ shop.name }}{% else %}Hoş geldiniz{% endif %}</span>
+    <h1>{{ shop.tagline|default:shop.name }}</h1>
+    {% if shop.description %}<p>{{ shop.description|truncatechars:170 }}</p>{% endif %}
+    <div class="cta-row">
+      <a class="btn" href="#urunler">Koleksiyonu keşfet</a>
+      {% if has_custom %}<a class="btn ghost" href="{% url 'catalog:custom' shop.slug %}">Ölçüye özel dikim</a>{% endif %}
+    </div>
+    {% if shop.working_hours or shop.address %}
+    <div class="meta">
+      {% if shop.working_hours %}<span>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>{{ shop.working_hours }}</span>{% endif %}
+      {% if shop.address %}<a href="https://www.google.com/maps/search/?api=1&query={{ shop.address|urlencode }}" target="_blank" rel="noopener">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Yol tarifi</a>{% endif %}
+    </div>
+    {% endif %}
   </div>
+  {% if hero_images %}
+  <div class="hero-art">
+    {% for img in hero_images %}
+    <a class="arch{% if not forloop.first %} sm{% endif %}" href="{{ img.product.get_absolute_url }}" aria-label="{{ img.product.name }}">
+      <img class="fade" src="{% if forloop.first %}{{ img.image.url }}{% else %}{{ img.thumb.url }}{% endif %}" alt="{{ img.product.name }}" {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
 </section>
 {% endif %}
 
-<form class="search" method="get" role="search">
-  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-  <input type="search" name="q" value="{{ q }}" placeholder="Ne aramıştınız?" aria-label="Ürün ara" enterkeyhint="search" autocomplete="off">
-  {% if category %}<input type="hidden" name="kategori" value="{{ category.slug }}">{% endif %}
-  {% if q %}<a class="clear" href="?{% if category %}kategori={{ category.slug }}{% endif %}" aria-label="Aramayı temizle">×</a>{% endif %}
-</form>
+<div class="section-head" id="urunler">
+  <h2>{% if q %}“{{ q }}”{% elif category %}{{ category.name }}{% else %}Koleksiyon{% endif %}</h2>
+  <span class="count">{{ products.paginator.count }} ürün</span>
+</div>
 
-{% if categories %}
-<nav class="chips" aria-label="Kategoriler">
-  <a class="chip {% if not category %}on{% endif %}" href="?{% if q %}q={{ q|urlencode }}{% endif %}">Tümü</a>
-  {% for c in categories %}
-  <a class="chip {% if category.pk == c.pk %}on{% endif %}" href="?kategori={{ c.slug }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ c.name }}</a>
-  {% endfor %}
-</nav>
-{% endif %}
-
-{% if has_custom and not filtered %}
-<a class="promo" href="{% url 'catalog:custom' shop.slug %}">
-  <span class="art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 16.5 16.5 3.5l4 4L7.5 20.5z"/><path d="m7 13 2 2M10 10l2 2M13 7l2 2"/></svg></span>
-  <span><strong>Ölçünüze özel dikim</strong><small>Ölçüyü girin, rengi seçin, nasıl duracağını görün.</small></span>
-  <span class="go" aria-hidden="true">→</span>
-</a>
-{% endif %}
-
-{% if featured %}
-<h2 class="section-title">Öne çıkanlar</h2>
-<div class="rail">{% include "store/_cards.html" with products=featured %}</div>
-{% endif %}
-
-<h2 class="section-title">
-  {% if q %}“{{ q }}”{% elif category %}{{ category.name }}{% else %}Tüm ürünler{% endif %}
-  <small>{{ products.paginator.count }} ürün</small>
-</h2>
+<div class="toolbar">
+  {% if categories %}
+  <nav class="chips" aria-label="Kategoriler">
+    <a class="chip {% if not category %}on{% endif %}" href="?{% if q %}q={{ q|urlencode }}{% endif %}#urunler">Tümü</a>
+    {% for c in categories %}
+    <a class="chip {% if category.pk == c.pk %}on{% endif %}" href="?kategori={{ c.slug }}{% if q %}&q={{ q|urlencode }}{% endif %}#urunler">{{ c.name }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+  <form class="search" method="get" role="search" action="#urunler">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="search" name="q" value="{{ q }}" placeholder="Ürün ara" aria-label="Ürün ara" enterkeyhint="search" autocomplete="off">
+    {% if category %}<input type="hidden" name="kategori" value="{{ category.slug }}">{% endif %}
+    {% if q %}<a class="clear" href="?{% if category %}kategori={{ category.slug }}{% endif %}#urunler" aria-label="Aramayı temizle">×</a>{% endif %}
+  </form>
+</div>
 
 {% if products %}
-<div class="grid" id="grid">{% include "store/_cards.html" %}</div>
+<div class="masonry" id="grid" data-masonry>{% include "store/_cards.html" %}</div>
 {% if products.has_next %}
 <div class="more">
   <button class="btn ghost" id="more" data-page="1" data-pages="{{ products.paginator.num_pages }}">Daha fazla göster</button>
@@ -64,6 +67,17 @@
   <strong>Ürün bulunamadı</strong>
   {% if filtered %}Farklı bir kelime deneyin ya da <a href="{{ shop.get_absolute_url }}">tüm ürünlere dönün</a>.{% else %}Bu mağaza henüz ürün eklemedi.{% endif %}
 </div>
+{% endif %}
+
+{% if has_custom and not filtered %}
+<section class="bespoke">
+  <div>
+    <span class="eyebrow">Özel dikim</span>
+    <h2>Evinize, ölçünüze göre.</h2>
+    <p>Yatak, koltuk, perde ya da masanızın ölçüsünü girin; renklerini seçin ve nasıl duracağını görün. Sonra bize ulaşın, dikelim.</p>
+  </div>
+  <a class="btn" href="{% url 'catalog:custom' shop.slug %}">Tasarlamaya başla</a>
+</section>
 {% endif %}
 {% endblock %}
 {% block scripts %}<script src="{% static 'js/store.js' %}" defer></script>{% endblock %}

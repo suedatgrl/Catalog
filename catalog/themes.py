@@ -2,46 +2,49 @@
 paletlerden birini seçer; böylece her mağaza derli toplu görünür.
 
 Her tema müşteri sayfasındaki CSS değişkenlerini belirler:
-  bg: sayfa zemini      surface: kart zemini     ink: yazı        muted: ikincil yazı
-  line: ince çizgiler   accent: vurgu rengi      on: vurgu üstündeki yazı
-  soft: vurgunun açık tonu (rozet, kutu zemini)  deep: karşılama alanındaki geçişin koyu ucu
+  bg: sayfa zemini      surface: kart/alan zemini   ink: yazı        muted: ikincil yazı
+  line: ince çizgiler   accent: vurgu rengi         on: vurgu üstündeki yazı
+  soft: yumuşak zemin (alt bilgi, kutular)          deep: vurgunun koyu tonu
+
+Paletler "doğal ve sakin" tutuldu (kum, zeytin, sis, pudra…): ürün fotoğrafları öne çıksın.
+Yazı renkleri zeminde en az ~5:1 kontrast verir.
 """
 
 THEMES = {
     "kum": {
-        "name": "Kum & Kiremit", "scheme": "light",
-        "bg": "#f8f4ee", "surface": "#ffffff", "ink": "#221c18", "muted": "#7b7068",
-        "line": "#ebe3d8", "accent": "#b4532a", "on": "#ffffff", "soft": "#f4e4d8", "deep": "#853717",
+        "name": "Kum", "scheme": "light",
+        "bg": "#f6f0e7", "surface": "#fffdf9", "ink": "#2a2420", "muted": "#6d6258",
+        "line": "#e7dccb", "accent": "#9a5a3a", "on": "#fffaf4", "soft": "#eadfcf", "deep": "#6b3b22",
     },
     "orman": {
-        "name": "Orman", "scheme": "light",
-        "bg": "#f3f5ef", "surface": "#ffffff", "ink": "#18221c", "muted": "#68736b",
-        "line": "#e1e7dc", "accent": "#2f5d4e", "on": "#ffffff", "soft": "#dde9df", "deep": "#1b3d33",
+        "name": "Zeytin", "scheme": "light",
+        "bg": "#f1f2ea", "surface": "#fbfbf6", "ink": "#232820", "muted": "#666c5b",
+        "line": "#dcdecd", "accent": "#59683f", "on": "#fbfbf6", "soft": "#e1e5cf", "deep": "#39461f",
     },
     "okyanus": {
-        "name": "Okyanus", "scheme": "light",
-        "bg": "#f2f5fa", "surface": "#ffffff", "ink": "#101a2c", "muted": "#657089",
-        "line": "#dfe5ef", "accent": "#2748c7", "on": "#ffffff", "soft": "#dee6fb", "deep": "#152a82",
+        "name": "Sis", "scheme": "light",
+        "bg": "#edf1f3", "surface": "#fafcfc", "ink": "#1d272c", "muted": "#5f6e76",
+        "line": "#d6dee2", "accent": "#456a7c", "on": "#fafcfc", "soft": "#d9e5eb", "deep": "#2b4857",
     },
     "lavanta": {
         "name": "Lavanta", "scheme": "light",
-        "bg": "#f6f4fb", "surface": "#ffffff", "ink": "#1d1830", "muted": "#6f6987",
-        "line": "#e6e1f2", "accent": "#6a48c2", "on": "#ffffff", "soft": "#e8e0fa", "deep": "#432a8c",
+        "bg": "#f3f0f7", "surface": "#fcfbfe", "ink": "#241f2e", "muted": "#6a6277",
+        "line": "#e2dcec", "accent": "#67508f", "on": "#fcfbfe", "soft": "#e6def2", "deep": "#40305f",
     },
     "gul": {
-        "name": "Gül Kurusu", "scheme": "light",
-        "bg": "#fbf4f3", "surface": "#ffffff", "ink": "#2a1719", "muted": "#86696c",
-        "line": "#f0dfdd", "accent": "#b23a57", "on": "#ffffff", "soft": "#f9e0e5", "deep": "#7c203a",
+        "name": "Pudra", "scheme": "light",
+        "bg": "#f8eeea", "surface": "#fffaf8", "ink": "#2d2020", "muted": "#7a5f61",
+        "line": "#ecdad5", "accent": "#a85a62", "on": "#fffaf8", "soft": "#f2d8d5", "deep": "#733a41",
     },
     "komur": {
-        "name": "Siyah & Beyaz", "scheme": "light",
-        "bg": "#f5f5f3", "surface": "#ffffff", "ink": "#121212", "muted": "#6b6b6b",
-        "line": "#e4e4e1", "accent": "#161616", "on": "#ffffff", "soft": "#e9e9e6", "deep": "#3d3d3d",
+        "name": "Mermer", "scheme": "light",
+        "bg": "#f3f3f1", "surface": "#ffffff", "ink": "#161616", "muted": "#666663",
+        "line": "#e2e2de", "accent": "#1c1c1c", "on": "#ffffff", "soft": "#e7e7e3", "deep": "#3b3b39",
     },
     "gece": {
         "name": "Gece & Altın", "scheme": "dark",
-        "bg": "#0e1116", "surface": "#171b22", "ink": "#f3efe8", "muted": "#9aa2ad",
-        "line": "#272d37", "accent": "#e3b75f", "on": "#1b1405", "soft": "#2a2416", "deep": "#b98a2e",
+        "bg": "#14120f", "surface": "#1d1a16", "ink": "#f2ebe0", "muted": "#a99f90",
+        "line": "#2e2923", "accent": "#d9b36c", "on": "#1b1405", "soft": "#2a2419", "deep": "#9c7a3a",
     },
 }
 

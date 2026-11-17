@@ -192,6 +192,11 @@ class PanelTests(Base):
         with Image.open(images[0].image.path) as im:
             self.assertEqual(im.format, "WEBP")
             self.assertLessEqual(max(im.size), 1600)
+        # fotoğraf akışı: boyutlar kaydedilir, oran CSS için noktalı (virgülsüz) yazılır
+        self.assertEqual((images[0].thumb_w, images[0].thumb_h), (600, 360))
+        html = self.client.get("/ayse/").content.decode()
+        self.assertRegex(html, r'data-ratio="1\.400"')  # 600/360=1.67 → en çok 1.4'e sınırlanır
+        self.assertNotRegex(html, r'data-ratio="\d,')
         # ikinci fotoğrafı kapak yap, sonra sil
         self.client.post(reverse("panel:image_cover", args=[images[1].pk]))
         self.assertEqual(product.images.first().pk, images[1].pk)

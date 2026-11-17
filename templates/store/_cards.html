@@ -1,20 +1,18 @@
-{% load catalog_extras %}{% for p in products %}
-<a class="card{% if not p.in_stock %} out{% endif %}" href="{{ p.get_absolute_url }}">
-  <div class="ph">
-    {% with img=p.cover %}
-    {% if img %}<img src="{{ img.thumb.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
+{% load catalog_extras %}{% for p in products %}{% with img=p.cover %}
+<a class="card{% if not p.in_stock %} out{% endif %}" href="{{ p.get_absolute_url }}" data-ratio="{% firstof img.ratio_css '0.800' %}">
+  <div class="ph" style="aspect-ratio: {% firstof img.ratio_css '0.800' %}">
+    {% if img %}<img class="fade" src="{{ img.thumb.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
     {% else %}<div class="noimg">{{ p.name|initial }}</div>{% endif %}
-    {% endwith %}
-    {% if shop.show_prices and p.discount_percent %}<span class="badge">%{{ p.discount_percent }} indirim</span>{% endif %}
-    {% if not p.in_stock %}<span class="badge out">Tükendi</span>{% endif %}
+    {% if not p.in_stock %}<span class="tag-out">Tükendi</span>{% endif %}
   </div>
   <div class="body">
+    {% if p.category %}<span class="cat">{{ p.category.name }}</span>{% endif %}
     <span class="name">{{ p.name }}</span>
     {% if shop.show_prices and p.price is not None %}
-      <span class="price">{{ p.price|tl }}{% if p.discount_percent %}<s>{{ p.old_price|tl }}</s>{% endif %}</span>
+      <span class="price"><b>{{ p.price|tl }}</b>{% if p.discount_percent %}<s>{{ p.old_price|tl }}</s><em>%{{ p.discount_percent }}</em>{% endif %}</span>
     {% else %}
-      <span class="price ask">Fiyat için sorunuz</span>
+      <span class="price">Fiyat için sorunuz</span>
     {% endif %}
   </div>
 </a>
-{% endfor %}
+{% endwith %}{% endfor %}

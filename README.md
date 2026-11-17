@@ -207,6 +207,19 @@ Yeni tema eklemek için `THEMES` sözlüğüne bir kayıt yeterlidir (migration 
 Özel dikim çizim alanı her temada **beyaz zeminlidir**; kumaş renkleri bozulmasın diye.
 Koyu bir tema (`gece`) varsa `scheme: "dark"` olarak işaretlenir.
 
+### Müşteri arayüzü tasarımı
+
+Yön: sakin, editoryal bir vitrin (satış bandı, rozet, bağıran renk yok). `static/css/store.css` tek dosyadır;
+renkler `<body style>` ile temadan gelen CSS değişkenleridir, yazı tipleri Fraunces (başlık) ve DM Sans (metin).
+
+- **Fotoğraf akışı (masonry):** kartlar fotoğrafın doğal oranını kullanır. `ProductImage.thumb_w/thumb_h` kayıtta
+  otomatik doldurulur, `ratio_css` oranı **noktalı metin** olarak verir (Türkçe yerelde ondalık virgül CSS'i bozar;
+  şablonda `{{ img.ratio }}` gibi float yazmayın). `store.js` kartları bilinen orana göre en kısa sütuna yerleştirir;
+  JS yoksa CSS sütunlarına düşer. Çok uç oranlar `0.62–1.4` aralığına sıkıştırılır.
+- Karşılama alanındaki kemer biçimli görseller, listenin en üstündeki (öne çıkan) iki ürünün kapağıdır.
+- Yeni görünüm değişikliği yaparken satır içi `<script>`/`onclick` kullanmayın (CSP).
+- Örnek veri: `manage.py demo_yukle --slug <adres> --ad "<ad>" --tema <anahtar>` ayrı örnek mağazalar kurar.
+
 ### Özel dikim
 
 Esnaf **renk kartelasını** (`FabricColor`: düz, çizgili, kareli, puantiyeli veya kumaş fotoğrafı) ve

@@ -1,6 +1,7 @@
 """Deneme için örnek bir mağaza kurar:  python manage.py demo_yukle
 Yalnızca geliştirme/tanıtım içindir; üretimde çalıştırmayın."""
-import colorsys
+import math
+import random
 from io import BytesIO
 
 from django.contrib.auth import get_user_model
@@ -53,40 +54,100 @@ CUSTOM = [
 ]
 
 
-def placeholder(index):
-    """Gerçek fotoğraf yerine yumuşak renk geçişli bir örnek görsel üretir."""
-    hue = (index * 0.137) % 1
-    top = tuple(int(v * 255) for v in colorsys.hls_to_rgb(hue, .86, .45))
-    bottom = tuple(int(v * 255) for v in colorsys.hls_to_rgb((hue + .06) % 1, .70, .50))
-    w, h = 800, 1000
-    img = Image.new("RGB", (w, h))
-    draw = ImageDraw.Draw(img)
-    for y in range(h):
-        t = y / h
-        draw.line([(0, y), (w, y)], fill=tuple(int(top[i] * (1 - t) + bottom[i] * t) for i in range(3)))
-    shape = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    sd = ImageDraw.Draw(shape)
-    sd.rounded_rectangle([170, 300, 630, 760], radius=70, fill=(255, 255, 255, 110))
-    sd.ellipse([300, 180, 500, 380], fill=(255, 255, 255, 80))
-    img.paste(shape.filter(ImageFilter.GaussianBlur(2)), (0, 0), shape)
+# Sakin, doğal tonlar: (koyu, açık)
+TONES = [
+    ("#b9a58d", "#efe6d7"), ("#8fa08a", "#e3e9da"), ("#9fb2bf", "#e6edf1"), ("#d3a9a0", "#f6e6e1"),
+    ("#7f776d", "#e6e0d7"), ("#b58f6e", "#f0e2d0"), ("#6f8190", "#dde4e8"), ("#c9a47e", "#f3e6d4"),
+]
+SIZES = [(800, 1000), (800, 1200), (800, 800), (800, 1066), (800, 1000), (800, 1280)]
+
+
+def _hex(c):
+    c = c.lstrip("#")
+    return tuple(int(c[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _lerp(a, b, t):
+    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
+
+
+def placeholder(index, appliance=False):
+    """Gerçek fotoğraf yerine stüdyo çekimi hissi veren örnek görsel üretir:
+    kumaş kıvrımları (tekstil) ya da nötr fonda bir nesne (küçük ev aletleri).
+    Boyutlar çeşitlidir; böylece fotoğraf akışı (masonry) gerçekçi görünür."""
+    rnd = random.Random(index * 7919)
+    dark, light = (_hex(c) for c in TONES[index % len(TONES)])
+    w, h = SIZES[index % len(SIZES)]
+    sw, sh = w // 2, h // 2  # yarı çözünürlükte çiz, sonra büyüt (yumuşak görünür, hızlı üretilir)
+
+    if appliance:
+        img = Image.new("RGB", (sw, sh))
+        px = img.load()
+        horizon = int(sh * 0.68)
+        for y in range(sh):
+            t = y / sh
+            base = _lerp(light, tuple(min(255, v + 18) for v in light), t) if y < horizon else _lerp(
+                tuple(max(0, v - 14) for v in light), tuple(max(0, v - 34) for v in light), (y - horizon) / (sh - horizon))
+            for x in range(sw):
+                px[x, y] = base
+        layer = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
+        d = ImageDraw.Draw(layer)
+        bw, bh = int(sw * rnd.uniform(.38, .5)), int(sh * rnd.uniform(.3, .4))
+        x0, y1 = (sw - bw) // 2, horizon + int(sh * .06)
+        shadow = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
+        ImageDraw.Draw(shadow).ellipse([x0 - 10, y1 - 14, x0 + bw + 10, y1 + 16], fill=(40, 30, 20, 90))
+        img.paste(shadow.filter(ImageFilter.GaussianBlur(9)), (0, 0), shadow.filter(ImageFilter.GaussianBlur(9)))
+        body = tuple(max(0, v - 70) for v in dark)
+        d.rounded_rectangle([x0, y1 - bh, x0 + bw, y1], radius=int(bw * .18), fill=body + (255,))
+        d.rounded_rectangle([x0 + 8, y1 - bh + 8, x0 + bw // 3, y1 - 10], radius=int(bw * .1), fill=(255, 255, 255, 46))
+        hx = x0 + bw if rnd.random() < .5 else x0 - int(bw * .16)
+        d.rounded_rectangle([hx, y1 - int(bh * .72), hx + int(bw * .16), y1 - int(bh * .3)], radius=10, fill=body + (255,))
+        img.paste(layer, (0, 0), layer)
+    else:
+        # Çapraz kumaş kıvrımları: iki dalganın toplamı + kenarlarda hafif kararma
+        ang = rnd.uniform(-.7, .7)
+        ca, sa = math.cos(ang), math.sin(ang)
+        f1, f2 = rnd.uniform(.016, .026), rnd.uniform(.05, .08)
+        ph1, ph2 = rnd.uniform(0, 6.28), rnd.uniform(0, 6.28)
+        img = Image.new("RGB", (sw, sh))
+        px = img.load()
+        for y in range(sh):
+            for x in range(sw):
+                u = x * ca + y * sa
+                t = .5 + .34 * math.sin(u * f1 + ph1 + .8 * math.sin(y * .011)) + .16 * math.sin(u * f2 + ph2)
+                px[x, y] = _lerp(dark, light, max(0, min(1, t)))
+
+    img = img.resize((w, h), Image.LANCZOS)
+    # İnce dokuma/film greni ve hafif vinyet
+    grain = Image.effect_noise((w, h), 26).convert("RGB")
+    img = Image.blend(img, grain, 0.05)
+    mask = Image.radial_gradient("L").resize((w, h))
+    shade = Image.new("RGB", (w, h), tuple(max(0, v - 60) for v in dark))
+    img = Image.composite(img, shade, mask.point(lambda v: min(255, 150 + v)))
     buf = BytesIO()
-    img.save(buf, "JPEG", quality=85)
+    img.save(buf, "JPEG", quality=88)
     return ContentFile(buf.getvalue(), name="demo.jpg")
 
 
 class Command(BaseCommand):
     help = "Örnek bir mağaza, ürünler, renk kartelası ve panel kullanıcısı oluşturur."
 
+    def add_arguments(self, parser):
+        parser.add_argument("--slug", default="ornek-magaza", help="Mağaza adresi")
+        parser.add_argument("--ad", default="Örnek Tekstil & Ev", help="Mağaza adı")
+        parser.add_argument("--tema", default="kum", help="Tema anahtarı (kum, orman, okyanus, lavanta, gul, komur, gece)")
+
     def handle(self, *args, **options):
         if not settings.DEBUG:
             raise CommandError("demo_yukle bilinen bir şifreyle kullanıcı oluşturur; yalnızca DEBUG açıkken çalışır.")
-        if Shop.objects.filter(slug="ornek-magaza").exists():
-            self.stdout.write("Örnek mağaza zaten var: /ornek-magaza/")
+        slug = options["slug"]
+        if Shop.objects.filter(slug=slug).exists():
+            self.stdout.write(f"Bu adreste mağaza zaten var: /{slug}/")
             return
 
         shop = Shop.objects.create(
-            name="Örnek Tekstil & Ev",
-            slug="ornek-magaza",
+            name=options["ad"],
+            slug=slug,
             tagline="Ev tekstili ve küçük ev aletleri",
             description="1998'den beri mahallenizin ev tekstili ve ev gereçleri dükkânı. Ölçüye özel dikim yapılır.",
             phone="0212 555 00 00",
@@ -94,7 +155,7 @@ class Command(BaseCommand):
             instagram="ornektekstil",
             address="Çarşı Cad. No: 12, Kadıköy / İstanbul",
             working_hours="Pzt–Cmt 09:00–20:00",
-            theme="kum",
+            theme=options["tema"],
         )
         user, created = get_user_model().objects.get_or_create(username="demo")
         if created:
@@ -113,7 +174,7 @@ class Command(BaseCommand):
                 in_stock=(i != 7),
             )
             for n in range(2 if featured else 1):
-                src = placeholder(i * 3 + n)
+                src = placeholder(i * 3 + n, appliance=cat_name == "Küçük Ev Aletleri")
                 ProductImage.objects.create(
                     product=product, image=process_image(src, 1600),
                     thumb=process_image(src, 600, quality=78), order=n,
@@ -128,6 +189,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             "Örnek mağaza hazır.\n"
-            "  Mağaza : /ornek-magaza/\n"
+            f"  Mağaza : /{slug}/\n"
             "  Panel  : /panel/   (kullanıcı: demo  şifre: demo12345)"
         ))
