@@ -5,7 +5,8 @@ from io import BytesIO
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 from PIL import Image, ImageDraw, ImageFilter
 
 from catalog.models import Category, CustomItem, FabricColor, Product, ProductImage, Shop, ShopMember
@@ -77,6 +78,8 @@ class Command(BaseCommand):
     help = "Örnek bir mağaza, ürünler, renk kartelası ve panel kullanıcısı oluşturur."
 
     def handle(self, *args, **options):
+        if not settings.DEBUG:
+            raise CommandError("demo_yukle bilinen bir şifreyle kullanıcı oluşturur; yalnızca DEBUG açıkken çalışır.")
         if Shop.objects.filter(slug="ornek-magaza").exists():
             self.stdout.write("Örnek mağaza zaten var: /ornek-magaza/")
             return

@@ -80,6 +80,10 @@ Güvenlik duvarı 8000 portunu engelliyorsa telefon bağlanamaz.
   mevcut ürünleri yeniden kaydedin:
   `Product.objects.all()` üzerinde `p.save(update_fields=["search_text"])`.
 - `db.sqlite3` ve `media/` git'e girmez (`.gitignore`).
+- `manage.py` `DJANGO_DEBUG=1` varsayılanını kendisi koyar; `manage.py` komutlarını yayın ortamında çalıştırırken
+  ortam değişkenlerini (özellikle `DJANGO_DEBUG=0`) açıkça verin.
+- **Şablonlara satır içi `onclick=`, `onsubmit=`, `<script>…</script>` yazmayın.** CSP bunları engeller; bir test de
+  bunu denetler. Onay penceresi için `data-confirm`, otomatik gönderim için `data-autosubmit` kullanın (`panel.js`).
 
 ## Adres haritası
 
@@ -108,6 +112,7 @@ catalog/                Müşteri tarafı + veri modelleri
   kinds.py              Özel dikim türleri: şekil, ölçü sınırları, parçalar, hazır ölçüler
   themes.py             Mağaza renk temaları (hazır paletler)
   utils.py              Türkçe slug/arama, görsel işleme, WhatsApp numarası, site_url
+  security.py           CSP/yanıt başlıkları, istek boyutu sınırı, giriş hız sınırı
   admin.py              Platform yönetim ekranı
   templatetags/         `tl` (para biçimi), `wa_link`, `initial`
   management/commands/  demo_yukle
@@ -119,7 +124,8 @@ panel/                  Esnaf paneli
 templates/store/        Müşteri şablonları
 templates/panel/        Panel şablonları
 static/css/             store.css (müşteri), panel.css (esnaf)
-static/js/              store.js (daha fazla yükle, galeri, paylaş), visualizer.js (özel dikim çizimi)
+static/js/              store.js (daha fazla yükle, galeri, paylaş), visualizer.js (özel dikim çizimi),
+                        panel.js (onay pencereleri vb.; satır içi onclick yok, CSP gereği)
 ```
 
 ## Veri modeli
@@ -247,14 +253,19 @@ kayıt eklenerek yapılır.
 
 | Değişken | Varsayılan | Açıklama |
 |---|---|---|
-| `DJANGO_DEBUG` | `1` | Üretimde `0`. `0` iken güvenli çerezler ve proxy başlığı açılır |
+| `DJANGO_DEBUG` | `0` (yayın) / `1` (`manage.py`) | **Güvenli varsayılan kapalıdır.** Yalnızca `manage.py` geliştirme kolaylığı için `1` yapar; `gunicorn config.wsgi` kapalı başlar. `0` iken HTTPS yönlendirmesi, HSTS ve güvenli çerezler açılır |
 | `DJANGO_SECRET_KEY` | geliştirmede sabit anahtar | **`DEBUG=0` iken zorunlu**, yoksa uygulama başlamaz |
-| `DJANGO_ALLOWED_HOSTS` | `DEBUG=1` ise `*` | Virgülle ayrılmış alan adları |
+| `DJANGO_ALLOWED_HOSTS` | `DEBUG=1` ise `*` | Virgülle ayrılmış alan adları. **`DEBUG=0` iken zorunlu**, yoksa uygulama başlamaz |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | boş | Örn. `https://ornek.com` (HTTPS arkasında gerekir) |
 | `SITE_URL` | istekten türetilir | QR kodlara yazılan kök adres, örn. `https://ornek.com` (sonunda `/` olmadan) |
 | `PLATFORM_NAME` | `Vitrin` | Başlıklarda ve girişte görünen platform adı |
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | boş | `DB_NAME` verilirse PostgreSQL. `requirements.txt` içindeki `psycopg` satırını açın |
 | `MEDIA_ROOT` | `./media` | Yüklenen dosyaların kalıcı diski |
+| `BEHIND_PROXY` | `1` (yayın) | Uygulama ters vekil arkasındaysa `1`: HTTPS ve istemci IP'si vekil başlıklarından okunur. **Vekil yoksa `0` yapın**, yoksa başlıklar sahtelenebilir ve hız sınırı atlatılır |
+| `ADMIN_URL` | `admin` | Yönetim paneli adresi. Üretimde tahmin edilmesi zor bir değer verin (örn. `yonetim-x7k2`) |
+| `SECURE_SSL_REDIRECT` | `1` (yayın) | HTTP'yi HTTPS'e yönlendirir. Vekil zaten yönlendiriyorsa `0` (döngüyü önler) |
+| `SECURE_HSTS_SECONDS` | `3600` (yayın) | HSTS süresi. HTTPS sorunsuz çalışınca `31536000`'e çıkarın |
+| `SECURE_HSTS_INCLUDE_SUBDOMAINS` | `0` | Alt alan adlarını da kapsar; tümü HTTPS ise `1` |
 
 ## Test
 
@@ -265,7 +276,8 @@ kayıt eklenerek yapılır.
 Testler `catalog/tests.py` içindedir ve geçici bir medya klasörü kullanır. Kapsam: yardımcı fonksiyonlar,
 Türkçe arama, müşteri sayfaları, gizli ürün/mağaza, QR yönlendirme ve sayaç, özel dikim talebinin sunucu
 doğrulaması, panelde giriş zorunluluğu, tüm panel sayfalarının açılması, fotoğraf yükleme/kapak/silme,
-geçersiz dosya reddi, ayarlar ve **mağazalar arası yalıtım**. CI'da `manage.py check` ve `manage.py test`
+geçersiz dosya reddi, ayarlar, **mağazalar arası yalıtım** ve güvenlik regresyonları (hız sınırları,
+yükleme sınırları, çökme açıkları, CSP başlıkları, satır içi işleyici yasağı). CI'da `manage.py check` ve `manage.py test`
 çalıştırmanız yeterlidir; harici servis gerekmez.
 
 Arayüz değişikliklerini tarayıcıda da kontrol edin: özellikle 360–420 px genişlikte (müşteriler telefonla gelir).
@@ -274,7 +286,8 @@ Arayüz değişikliklerini tarayıcıda da kontrol edin: özellikle 360–420 px
 
 Genel çerçeve (CI/CD sizde olduğu için yalnızca gereksinimler):
 
-1. Ortam değişkenlerini ayarlayın (yukarıdaki tablo). `DJANGO_SECRET_KEY` ve `SITE_URL` zorunludur.
+1. Ortam değişkenlerini ayarlayın (yukarıdaki tablo). `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` ve `SITE_URL`
+   zorunludur; `DJANGO_DEBUG` verilmezse kapalıdır. Vekil yoksa `BEHIND_PROXY=0` verin.
 2. `pip install -r requirements.txt gunicorn` (+ PostgreSQL kullanıyorsanız `psycopg[binary]`).
 3. `python manage.py migrate` ve `python manage.py collectstatic --noinput`.
 4. `gunicorn config.wsgi` bir ters vekilin (nginx vb.) arkasında çalışsın; TLS vekilde sonlansın ve
@@ -292,17 +305,43 @@ değişirse basılı kodlar çalışmaz (adres yönlendirmesi ile kurtarılabili
 
 ## Güvenlik ve gizlilik notları
 
-- CSRF koruması tüm POST formlarında açıktır. Panel çıkışı POST'tur.
-- Panelde tüm veri erişimi mağaza süzgeçlidir (bkz. kiracı yalıtımı). Yüklenen dosyalar WebP'ye yeniden
-  kodlanır; kullanıcıdan gelen dosya olduğu gibi saklanmaz.
-- Tarayıcıdan gelen özel dikim ölçüleri ve renk seçimleri sunucuda yeniden doğrulanır; başka mağazanın
-  rengi kabul edilmez.
-- Yönlendirme parametreleri (`next`) `url_has_allowed_host_and_scheme` ile doğrulanır.
-- Panel sayfaları `noindex` etiketlidir.
-- **Kişisel veri:** özel dikim talep formu **ad ve telefon** toplar ve veritabanında saklar. Yayına almadan
-  önce bir aydınlatma metni (KVKK) ve saklama/silme politikası eklenmelidir. Esnaf talepleri panelden silebilir.
-- Giriş denemesi sınırlaması yoktur; internete açık yayında `django-axes` gibi bir çözüm ya da vekil
-  katmanında hız sınırı eklenmelidir.
+Alınan önlemler (hepsi `catalog/tests.py → SecurityTests` ve ilgili testlerle denetlenir):
+
+- **Kimlik doğrulama:** panel ve admin girişinde hız sınırı: aynı IP + kullanıcı adı için 15 dakikada 5 hatalı
+  denemeden sonra, aynı IP için toplam 20 hatadan sonra `429`. Başarılı giriş yalnızca IP+kullanıcı sayacını
+  sıfırlar. Panel sayfaları `no-store` ile gönderilir (çıkıştan sonra "geri" ile görünmez).
+- **Kiracı yalıtımı:** panelde her sorgu mağaza süzgeçlidir (bkz. yukarısı); testlerle denetlenir.
+- **XSS:** şablonlar otomatik kaçışlıdır (`|safe` / `mark_safe` kullanılmaz). **Content-Security-Policy**
+  betiklerin yalnızca kendi alan adımızdan çalışmasına izin verir; satır içi betik/işleyici yoktur. Admin
+  (`/admin/`) CSP dışındadır, yalnızca platform sahibi kullanır. `X-Frame-Options: DENY`, `nosniff`, `Permissions-Policy`.
+- **CSRF:** tüm POST formlarında açık; çerez `HttpOnly`, `SameSite=Lax`, yayında `Secure`. Çıkış POST'tur.
+- **Yükleme:** her görsel alanında (ürün, kumaş, logo) dosya boyutu (`MAX_IMAGE_MB`) ve piksel sınırı
+  (`MAX_IMAGE_PIXELS`); dosyalar Pillow ile doğrulanıp WebP'ye yeniden kodlanır (uzantıya güvenilmez, SVG/HTML
+  yüklenemez). Tek isteğin üst sınırı `MAX_REQUEST_MB`. nginx'te de sınır koyun (aşağıya bakın).
+- **Girdi doğrulama:** özel dikim ölçüleri ve renkleri sunucuda yeniden doğrulanır; bozuk/aşırı iç içe JSON ve
+  `1e999`, `NaN` gibi değerler çökertmez; kimlik parametreleri yalnızca ASCII rakam kabul eder; arama kelime sayısı sınırlıdır.
+- **Kötüye kullanım:** özel dikim talebi IP başına saatte 5 ile sınırlı; bot tuzağı (gizli alan) var.
+- **Yönlendirme:** `next` parametreleri `url_has_allowed_host_and_scheme` ile doğrulanır; `/q/` yalnızca mağazaya yönlendirir.
+- **Yapılandırma:** `DEBUG` varsayılanı kapalı; yayında `SECRET_KEY` ve `ALLOWED_HOSTS` yoksa uygulama başlamaz;
+  HTTPS yönlendirmesi, HSTS, güvenli çerezler; `ADMIN_URL` değiştirilebilir. `demo_yukle` yalnızca `DEBUG` açıkken çalışır.
+- **Bağımlılıklar:** `pip-audit` ile taranır; çalışma zamanı paketlerinde (Django, Pillow, segno) bilinen açık yok.
+  Düzenli çalıştırın ve CI'a ekleyin. `requirements.txt` aralık verir; yayın için sürümleri sabitleyen bir kilit dosyası üretin.
+
+Bilinen kalan riskler ve yapılması gerekenler:
+
+- **Hız sınırı önbelleği süreç başınadır.** Birden çok gunicorn işçisinde sınır işçi sayısı kadar gevşer; çoklu
+  işçide `CACHES`'i Redis/Memcached/veritabanı önbelleğine çevirin (`catalog/security.py` başlığına bakın).
+- **Kişisel veri:** özel dikim talep formu **ad ve telefon** toplar ve saklar. Yayına almadan önce aydınlatma metni
+  (KVKK) ve saklama/silme politikası ekleyin. Esnaf talepleri panelden silebilir.
+- **Google Fonts:** müşteri sayfaları yazı tipini Google'dan yükler; bu, ziyaretçinin IP'sinin Google'a gitmesi
+  demektir (KVKK/GDPR açısından tartışmalı). Yazı tipini kendi sunucunuzdan sunmak (self-host) daha temizdir.
+- **İki aşamalı doğrulama yok** (admin dahil). Platform sahibi hesabı için güçlü parola kullanın.
+- **Gizli ürünlerin fotoğrafları** adresi bilinirse erişilebilir kalır (adresler tahmin edilemez rastgele ad taşır,
+  ama gizli değildir). Hassas içerik yüklemeyin.
+- **Sayaçlar kimlik doğrulamasızdır:** QR okutma ve ürün görüntüleme sayıları botlarla şişirilebilir; ayrıca her
+  istek bir veritabanı yazımıdır. Büyürse önbellekte biriktirip toplu yazın.
+- CSP `style-src`'de `'unsafe-inline'` içerir (şablonlarda `style=""` öznitelikleri var); bu betik çalıştırmaz.
+- Yayına çıkmadan önce bağımsız bir sızma testi/inceleme yaptırın.
 
 ## Bilinen eksikler ve fikirler
 

@@ -12,7 +12,7 @@
         <div class="grow"><strong>{{ c.name }}</strong><small>{% if c.image %}Kumaş fotoğrafı{% else %}{{ c.get_pattern_display }}{% endif %}</small></div>
         <div class="actions">
           <a class="btn ghost sm" href="{% url 'panel:edit' 'renk' c.pk %}">Düzenle</a>
-          <form class="inline" method="post" action="{% url 'panel:delete' 'renk' c.pk %}" onsubmit="return confirm('Bu renk silinsin mi?')">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
+          <form class="inline" method="post" action="{% url 'panel:delete' 'renk' c.pk %}" data-confirm="Bu renk silinsin mi?">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
         </div>
       </li>
       {% endfor %}

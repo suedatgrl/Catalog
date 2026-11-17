@@ -11,7 +11,7 @@
         <div class="grow"><strong>{{ c.name }}</strong><small>{{ c.n }} ürün · sıra {{ c.order }}</small></div>
         <div class="actions">
           <a class="btn ghost sm" href="{% url 'panel:edit' 'kategori' c.pk %}">Düzenle</a>
-          <form class="inline" method="post" action="{% url 'panel:delete' 'kategori' c.pk %}" onsubmit="return confirm('Kategori silinsin mi? İçindeki ürünler silinmez, kategorisiz kalır.')">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
+          <form class="inline" method="post" action="{% url 'panel:delete' 'kategori' c.pk %}" data-confirm="Kategori silinsin mi? İçindeki ürünler silinmez, kategorisiz kalır.">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
         </div>
       </li>
       {% endfor %}

@@ -5,6 +5,19 @@ from catalog.models import Category, CustomItem, FabricColor, Product, Shop
 from catalog.utils import process_image
 
 
+def check_image(f):
+    """Yüklenen yeni görselin dosya boyutunu ve piksel sayısını sınırlar."""
+    if f.size > settings.MAX_IMAGE_MB * 1024 * 1024:
+        raise forms.ValidationError(
+            f"“{f.name}” çok büyük. En fazla {settings.MAX_IMAGE_MB:g} MB yükleyebilirsiniz."
+        )
+    width, height = f.image.size  # forms.ImageField Pillow ile açıp doğruladı
+    if width * height > settings.MAX_IMAGE_PIXELS:
+        raise forms.ValidationError(
+            f"“{f.name}” çok yüksek çözünürlüklü. Fotoğrafı küçültün ya da kamerada daha düşük çözünürlük seçin."
+        )
+
+
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
@@ -55,12 +68,8 @@ class ProductForm(ShopFormMixin, forms.ModelForm):
 
     def clean_new_images(self):
         files = self.cleaned_data.get("new_images") or []
-        limit = settings.MAX_IMAGE_MB * 1024 * 1024
         for f in files:
-            if f.size > limit:
-                raise forms.ValidationError(
-                    f"“{f.name}” çok büyük. En fazla {settings.MAX_IMAGE_MB} MB yükleyebilirsiniz."
-                )
+            check_image(f)
         existing = self.instance.images.count() if self.instance.pk else 0
         if existing + len(files) > settings.MAX_IMAGES_PER_PRODUCT:
             raise forms.ValidationError(
@@ -84,6 +93,12 @@ class FabricColorForm(ShopFormMixin, forms.ModelForm):
             "hex2": forms.TextInput(attrs={"type": "color"}),
             "image": forms.FileInput(attrs={"accept": "image/*"}),
         }
+
+    def clean_image(self):
+        f = self.cleaned_data.get("image")
+        if f and "image" in self.changed_data:
+            check_image(f)
+        return f
 
     def save(self, commit=True):
         obj = super().save(commit=False)
@@ -112,6 +127,12 @@ class ShopSettingsForm(forms.ModelForm):
             "theme": forms.RadioSelect,
             "logo": forms.FileInput(attrs={"accept": "image/*"}),
         }
+
+    def clean_logo(self):
+        f = self.cleaned_data.get("logo")
+        if f and "logo" in self.changed_data:
+            check_image(f)
+        return f
 
     def save(self, commit=True):
         obj = super().save(commit=False)

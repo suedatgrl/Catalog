@@ -4,6 +4,8 @@ import tempfile
 from io import BytesIO
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.core.management import CommandError, call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -30,6 +32,7 @@ class Base(TestCase):
         shutil.rmtree(MEDIA, ignore_errors=True)
 
     def setUp(self):
+        cache.clear()  # hız sınırı sayaçları testler arasında sızmasın
         User = get_user_model()
         self.shop = Shop.objects.create(name="Ayşe Tekstil", slug="ayse", whatsapp="0532 111 22 33")
         self.other = Shop.objects.create(name="Öteki Dükkân", slug="oteki")
@@ -263,3 +266,143 @@ class PanelTests(Base):
         svg = self.client.get(reverse("panel:qr_image", args=["svg"]) + "?indir=1")
         self.assertIn("attachment", svg["Content-Disposition"])
         self.assertContains(self.client.get(reverse("panel:qr")), f"/q/{self.shop.qr_code}/")
+
+
+class SecurityTests(Base):
+    """Güvenlik denetiminde bulunan açıkların ve zayıflıkların regresyon testleri."""
+
+    def custom_setup(self):
+        item = CustomItem.objects.create(shop=self.shop, kind="nevresim", name="Nevresim")
+        color = FabricColor.objects.create(shop=self.shop, name="Lacivert", hex="#112233")
+        return item, color
+
+    def post_request(self, item, color, **extra):
+        data = {
+            "item": item.pk, "dims": json.dumps({"w": 160}), "parts": json.dumps({"duvet": color.pk}),
+            "customer_name": "Mehmet", "phone": "0532 000 00 00", **extra,
+        }
+        return self.client.post("/ayse/ozel-dikim/", data)
+
+    # --- çökme (500) açıkları ---
+    def test_unicode_digits_in_id_params_do_not_crash(self):
+        # "²".isdigit() True ama int() edilemez; eskiden 500 veriyordu
+        self.client.get(f"/q/{self.shop.qr_code}/", {"u": "²"})
+        self.client.login(username="ayse", password="gizli-sifre-1")
+        self.assertEqual(self.client.get(reverse("panel:qr"), {"u": "²"}).status_code, 200)  # geçersiz kimlik yok sayılır
+        self.assertEqual(self.client.get(reverse("panel:products"), {"kategori": "²"}).status_code, 200)
+
+    def test_custom_request_survives_hostile_json(self):
+        item, color = self.custom_setup()
+        for dims in ['{"w": 1e999}', "[" * 100000, '{"w": NaN}', '{"w": [1]}', "null"]:
+            with self.subTest(dims=dims[:20]):
+                r = self.client.post("/ayse/ozel-dikim/", {
+                    "item": item.pk, "dims": dims, "parts": "{}",
+                    "customer_name": "A", "phone": "0532 000 00 00",
+                })
+                self.assertIn(r.status_code, (200, 302))
+                cache.clear()
+
+    # --- kötüye kullanım / hız sınırı ---
+    def test_custom_request_is_rate_limited(self):
+        item, color = self.custom_setup()
+        for _ in range(8):
+            self.post_request(item, color)
+        self.assertEqual(CustomRequest.objects.count(), 5)
+
+    def test_login_is_throttled(self):
+        for _ in range(5):
+            r = self.client.post(reverse("panel:login"), {"username": "ayse", "password": "yanlis"})
+            self.assertEqual(r.status_code, 200)
+        r = self.client.post(reverse("panel:login"), {"username": "ayse", "password": "gizli-sifre-1"})
+        self.assertEqual(r.status_code, 429)  # doğru şifre bile bekletilir
+        self.assertIn("Retry-After", r)
+        # başka bir kullanıcı adı aynı IP'den hâlâ deneyebilir (ip sınırı daha yüksek)
+        r = self.client.post(reverse("panel:login"), {"username": "baska", "password": "x"})
+        self.assertEqual(r.status_code, 200)
+
+    def test_successful_login_resets_user_counter(self):
+        for _ in range(3):
+            self.client.post(reverse("panel:login"), {"username": "ayse", "password": "yanlis"})
+        r = self.client.post(reverse("panel:login"), {"username": "ayse", "password": "gizli-sifre-1"})
+        self.assertEqual(r.status_code, 302)
+
+    def test_forwarded_header_ignored_unless_behind_proxy(self):
+        from unittest import mock
+
+        from .utils import client_ip
+
+        request = mock.Mock(META={"REMOTE_ADDR": "10.0.0.1", "HTTP_X_FORWARDED_FOR": "6.6.6.6, 1.2.3.4"})
+        with override_settings(BEHIND_PROXY=False):
+            self.assertEqual(client_ip(request), "10.0.0.1")
+        with override_settings(BEHIND_PROXY=True):
+            self.assertEqual(client_ip(request), "1.2.3.4")  # sahte soldaki değil, vekilin eklediği sağdaki
+
+    def test_search_is_bounded(self):
+        from .utils import search_words
+
+        self.assertLessEqual(len(search_words("a " * 500)), 6)
+        self.assertEqual(self.client.get("/ayse/", {"q": "x " * 500}).status_code, 200)
+
+    # --- yükleme sınırları ---
+    @override_settings(MAX_IMAGE_MB=0.001)
+    def test_upload_size_limit_applies_to_every_image_field(self):
+        self.client.login(username="ayse", password="gizli-sifre-1")
+        r = self.client.post(reverse("panel:settings"), {"name": "A", "theme": "kum", "logo": png("l.png")})
+        self.assertEqual(r.status_code, 200)
+        r = self.client.post(reverse("panel:colors"), {
+            "name": "K", "hex": "#000000", "pattern": "duz", "hex2": "#ffffff", "order": 0, "image": png("k.png"),
+        })
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(FabricColor.objects.filter(name="K").exists())
+        r = self.client.post(reverse("panel:product_new"), {"name": "Z", "new_images": [png("p.png")]})
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Product.objects.filter(name="Z").exists())
+
+    @override_settings(MAX_IMAGE_PIXELS=1000)
+    def test_pixel_limit_blocks_decompression_bombs(self):
+        self.client.login(username="ayse", password="gizli-sifre-1")
+        r = self.client.post(reverse("panel:product_new"), {"name": "Z", "new_images": [png("p.png")]})
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Product.objects.filter(name="Z").exists())
+
+    @override_settings(MAX_REQUEST_MB=1)
+    def test_oversized_request_rejected_early(self):
+        self.client.login(username="ayse", password="gizli-sifre-1")
+        r = self.client.post(reverse("panel:product_new"), {"name": "Z", "x": "a" * (2 * 1024 * 1024)})
+        self.assertEqual(r.status_code, 413)
+
+    # --- tarayıcı korumaları ---
+    def test_security_headers(self):
+        r = self.client.get("/ayse/")
+        csp = r["Content-Security-Policy"]
+        self.assertIn("script-src 'self'", csp)
+        self.assertNotIn("unsafe-inline", csp.split("script-src")[1].split(";")[0])
+        self.assertIn("frame-ancestors 'none'", csp)
+        self.assertIn("object-src 'none'", csp)
+        self.assertEqual(r["X-Frame-Options"], "DENY")
+        self.assertIn("Permissions-Policy", r)
+
+    def test_no_inline_event_handlers_anywhere(self):
+        import re
+
+        self.client.login(username="ayse", password="gizli-sifre-1")
+        pages = ["/ayse/", self.product.get_absolute_url(), "/panel/", "/panel/urunler/", "/panel/qr/afis/",
+                 f"/panel/urunler/{self.product.pk}/", "/panel/kategoriler/", "/panel/renkler/",
+                 "/panel/ozel-dikim/", "/panel/talepler/", "/panel/ayarlar/"]
+        for url in pages:
+            with self.subTest(url=url):
+                html = self.client.get(url).content.decode()
+                self.assertIsNone(re.search(r"\son[a-z]+\s*=", html), "satır içi olay işleyicisi var")
+                self.assertNotIn("javascript:", html)
+
+    def test_panel_pages_are_not_cached(self):
+        self.client.login(username="ayse", password="gizli-sifre-1")
+        self.assertIn("no-store", self.client.get("/panel/")["Cache-Control"])
+
+    def test_foreign_host_header_rejected(self):
+        with override_settings(ALLOWED_HOSTS=["testserver"]):
+            self.assertEqual(self.client.get("/ayse/", HTTP_HOST="evil.example").status_code, 400)
+
+    def test_demo_command_refuses_outside_debug(self):
+        with override_settings(DEBUG=False), self.assertRaises(CommandError):
+            call_command("demo_yukle")

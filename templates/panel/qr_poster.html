@@ -27,7 +27,7 @@
   </style>
 </head>
 <body>
-<div class="bar"><button onclick="window.print()">Yazdır / PDF olarak kaydet</button></div>
+<div class="bar"><button data-print>Yazdır / PDF olarak kaydet</button></div>
 <div class="sheet">
   {% if request.shop.logo %}<img class="logo" src="{{ request.shop.logo.url }}" alt="">{% endif %}
   <h1>{{ request.shop.name }}</h1>
@@ -37,5 +37,6 @@
   <p class="how">Telefonunuzun kamerasını açın ve kodu okutun. Uygulama indirmenize gerek yok.</p>
   <p class="foot">{% if request.shop.phone %}{{ request.shop.phone }}{% endif %}{% if request.shop.phone and request.shop.instagram_handle %} · {% endif %}{% if request.shop.instagram_handle %}@{{ request.shop.instagram_handle }}{% endif %}</p>
 </div>
+<script src="{% load static %}{% static 'js/panel.js' %}"></script>
 </body>
 </html>

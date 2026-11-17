@@ -13,13 +13,14 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
 from catalog.models import (
     Category, CustomItem, CustomRequest, FabricColor, Product, ProductImage, Shop,
 )
 from catalog.themes import THEMES
-from catalog.utils import process_image, search_words, site_url
+from catalog.utils import is_id, process_image, search_words, site_url
 
 from .forms import CategoryForm, CustomItemForm, FabricColorForm, ProductForm, ShopSettingsForm
 
@@ -43,7 +44,7 @@ def panel_view(view):
         request.shops = shops
         return view(request, *args, **kwargs)
 
-    return login_required(wrapper)
+    return never_cache(login_required(wrapper))  # çıkıştan sonra "geri" ile eski sayfa görünmesin
 
 
 class PasswordView(PasswordChangeView):
@@ -84,11 +85,11 @@ def dashboard(request):
 @panel_view
 def product_list(request):
     products = request.shop.products.select_related("category").prefetch_related("images")
-    q = request.GET.get("q", "").strip()
+    q = request.GET.get("q", "").strip()[:100]
     for word in search_words(q):
         products = products.filter(search_text__contains=word)
     cat = request.GET.get("kategori", "")
-    if cat.isdigit():
+    if is_id(cat):
         products = products.filter(category_id=cat)
     status = request.GET.get("durum", "")
     if status == "yayinda":
@@ -285,7 +286,7 @@ def _qr_target(request):
     url = site_url(request) + reverse("catalog:qr", args=[shop.qr_code])
     name = shop.slug
     product_id = request.GET.get("u", "")
-    if product_id.isdigit():
+    if is_id(product_id):
         product = get_object_or_404(Product, pk=product_id, shop=shop)
         url += f"?u={product.pk}"
         name = f"{shop.slug}-{product.slug}"
@@ -316,7 +317,7 @@ def qr_page(request):
     url, _ = _qr_target(request)
     product_id = request.GET.get("u", "")
     product = (
-        request.shop.products.filter(pk=product_id).first() if product_id.isdigit() else None
+        request.shop.products.filter(pk=product_id).first() if is_id(product_id) else None
     )
     context = {"qr_url": url, "product": product, "needs_site_url": not settings.SITE_URL}
     return render(request, "panel/qr.html", context)

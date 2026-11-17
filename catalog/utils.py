@@ -6,6 +6,7 @@ import uuid
 from io import BytesIO
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
 from PIL import Image, ImageOps
@@ -32,7 +33,7 @@ def normalize(text):
 def search_words(query):
     """Arama kelimeleri. Çoğul eki atılır: 'havlular' yazan 'havlu'yu da bulur."""
     words = []
-    for word in normalize(query).split():
+    for word in normalize(query).split()[:6]:  # çok kelimeli sorgularla sunucuyu yormayı önler
         if len(word) >= 6 and word.endswith(("ler", "lar")):
             word = word[:-3]
         words.append(word)
@@ -56,6 +57,7 @@ def process_image(upload, max_side, quality=82, keep_alpha=False):
     """Yüklenen görseli döndürür/küçültür ve WebP'ye çevirir (mobilde hızlı açılsın)."""
     upload.seek(0)
     img = Image.open(upload)
+    img.draft("RGB", (max_side, max_side))  # JPEG'i okurken küçültür; bellek tasarrufu
     img = ImageOps.exif_transpose(img)
     has_alpha = img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info)
     if has_alpha and keep_alpha:
@@ -110,3 +112,29 @@ def site_url(request):
         if ip and not ip.startswith("127."):
             return f"http://{ip}:{port}" if port else f"http://{ip}"
     return f"{request.scheme}://{host}"
+
+
+def is_id(value):
+    """Yalnızca ASCII rakamlardan oluşan makul bir kimlik mi? ('²'.isdigit() de True döner ama int() olmaz)"""
+    return isinstance(value, str) and value.isascii() and value.isdigit() and len(value) <= 18
+
+
+def client_ip(request):
+    """İstemci adresi. Vekil arkasındaysak, vekilin eklediği SON X-Forwarded-For girdisi
+    kullanılır; soldakiler istemci tarafından sahtelenebilir."""
+    meta = request.META
+    if getattr(settings, "BEHIND_PROXY", False):
+        parts = [p.strip() for p in meta.get("HTTP_X_FORWARDED_FOR", "").split(",") if p.strip()]
+        if parts:
+            return parts[-1]
+    return meta.get("REMOTE_ADDR", "")
+
+
+def hit(key, window):
+    """Sayacı bir artırıp yeni değeri döndürür; süre ilk artışta başlar (hız sınırı için)."""
+    cache.add(key, 0, window)
+    try:
+        return cache.incr(key)
+    except ValueError:  # anahtarın süresi tam bu sırada doldu
+        cache.set(key, 1, window)
+        return 1

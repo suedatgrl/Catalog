@@ -56,7 +56,7 @@
             {% if forloop.first %}<span class="cover">Kapak</span>{% endif %}
             <div class="bar">
               {% if not forloop.first %}<button type="submit" form="cov-{{ img.pk }}">Kapak yap</button>{% endif %}
-              <button type="submit" class="del" form="del-{{ img.pk }}" onclick="return confirm('Bu fotoğraf silinsin mi?')">Sil</button>
+              <button type="submit" class="del" form="del-{{ img.pk }}" data-confirm="Bu fotoğraf silinsin mi?">Sil</button>
             </div>
           </div>
           {% endfor %}
@@ -78,7 +78,7 @@
     <button class="btn" type="submit">Kaydet</button>
     {% if not product %}<button class="btn ghost" type="submit" name="save_new" value="1">Kaydet ve yeni ekle</button>{% endif %}
     <span class="spacer"></span>
-    {% if product %}<button class="btn danger" type="submit" form="delete-form" onclick="return confirm('“{{ product.name|escapejs }}” kalıcı olarak silinsin mi?')">Ürünü sil</button>{% endif %}
+    {% if product %}<button class="btn danger" type="submit" form="delete-form" data-confirm="“{{ product.name }}” kalıcı olarak silinsin mi?">Ürünü sil</button>{% endif %}
   </div>
 </form>
 {% if product %}<form id="delete-form" method="post" action="{% url 'panel:product_delete' product.pk %}">{% csrf_token %}</form>{% endif %}

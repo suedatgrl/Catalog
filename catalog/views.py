@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from .kinds import kind_config
 from .models import CustomRequest, Product, Shop
-from .utils import search_words
+from .utils import client_ip, hit, is_id, search_words
 
 PAGE_SIZE = 24
 
@@ -25,7 +25,7 @@ def qr_redirect(request, code):
     Shop.objects.filter(pk=shop.pk).update(scan_count=F("scan_count") + 1)
     target = shop.get_absolute_url()
     product_id = request.GET.get("u", "")
-    if product_id.isdigit():
+    if is_id(product_id):
         product = shop.products.filter(pk=product_id, is_active=True).first()
         if product:
             target = product.get_absolute_url()
@@ -153,6 +153,10 @@ def _save_request(request, shop, items, colors):
     back = redirect("catalog:custom", slug=shop.slug)
     if request.POST.get("website"):  # bot tuzağı: gerçek kullanıcı bu alanı görmez
         return back
+    # Aynı kişi saatte en fazla 5 talep gönderebilir (veritabanını çöple doldurmayı önler)
+    if hit(f"request:{shop.pk}:{client_ip(request)}", 3600) > 5:
+        messages.error(request, "Çok fazla talep gönderdiniz. Lütfen biraz sonra tekrar deneyin ya da bizi arayın.")
+        return back
 
     item = next((i for i in items if str(i.pk) == request.POST.get("item")), None)
     name = request.POST.get("customer_name", "").strip()[:80]
@@ -166,7 +170,7 @@ def _save_request(request, shop, items, colors):
         raw_parts = json.loads(request.POST.get("parts", "{}"))
         if not isinstance(raw_dims, dict) or not isinstance(raw_parts, dict):
             raise ValueError
-    except ValueError:
+    except (ValueError, RecursionError):  # bozuk veya aşırı iç içe JSON
         messages.error(request, "Ölçüler okunamadı, lütfen tekrar deneyin.")
         return back
 
@@ -175,7 +179,7 @@ def _save_request(request, shop, items, colors):
     for key, label, lo, hi, default in info["dims"]:
         try:
             value = int(float(raw_dims.get(key, default)))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):  # "abc", NaN, 1e999
             value = default
         dims[label] = max(lo, min(hi, value))
 

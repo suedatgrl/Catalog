@@ -20,7 +20,8 @@ def env_bool(name, default):
     return os.environ.get(name, str(int(default))).lower() in ("1", "true", "yes", "on")
 
 
-DEBUG = env_bool("DJANGO_DEBUG", True)
+# Güvenli varsayılan: DEBUG KAPALI. Geliştirmede manage.py otomatik açar (bkz. manage.py).
+DEBUG = env_bool("DJANGO_DEBUG", False)
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "catalog.security.HardeningMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -127,10 +129,34 @@ LOGOUT_REDIRECT_URL = "panel:login"
 
 # Yüklenen ürün görseli başına üst sınır (MB) ve ürün başına görsel sayısı
 MAX_IMAGE_MB = 12
+MAX_IMAGE_PIXELS = 80_000_000  # ~80 MP; üstü reddedilir (bellek tüketme saldırısı)
+MAX_REQUEST_MB = 100  # tek bir POST isteğinin üst sınırı (nginx client_max_body_size ile uyumlu olmalı)
 MAX_IMAGES_PER_PRODUCT = 8
 
+# Yönetim paneli adresi. Varsayılan "admin"; tahmin edilmesin diye üretimde değiştirin.
+ADMIN_URL = os.environ.get("ADMIN_URL", "admin").strip("/") + "/"
+
+# Uygulama bir ters vekil (nginx vb.) arkasındaysa True olmalı: HTTPS ve istemci IP'si
+# vekilin ilettiği başlıklardan okunur. Vekil YOKSA False yapın, yoksa başlıklar sahtelenebilir.
+BEHIND_PROXY = env_bool("BEHIND_PROXY", not DEBUG)
+
+# Hız sınırı sayaçları burada tutulur (bkz. catalog/security.py).
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
+CSRF_COOKIE_HTTPONLY = True  # çerezi JS okumaz; formlar {% csrf_token %} kullanır
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+
 if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    if not ALLOWED_HOSTS:
+        raise RuntimeError("DJANGO_ALLOWED_HOSTS ortam değişkeni üretimde zorunludur (örn. ornek.com).")
+    if BEHIND_PROXY:
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Vekil zaten HTTPS'e yönlendiriyorsa SECURE_SSL_REDIRECT=0 verin (yönlendirme döngüsünü önler).
+    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", True)
+    # HSTS kısa başlar (1 saat). HTTPS'in sorunsuz çalıştığını gördükten sonra 31536000'e çıkarın.
+    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "3600"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)

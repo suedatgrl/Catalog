@@ -21,7 +21,7 @@
         </div>
         <div class="actions">
           <a class="btn ghost sm" href="{% url 'panel:edit' 'ozel' it.pk %}">Düzenle</a>
-          <form class="inline" method="post" action="{% url 'panel:delete' 'ozel' it.pk %}" onsubmit="return confirm('Bu ürün silinsin mi?')">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
+          <form class="inline" method="post" action="{% url 'panel:delete' 'ozel' it.pk %}" data-confirm="Bu ürün silinsin mi?">{% csrf_token %}<button class="btn danger sm">Sil</button></form>
         </div>
       </li>
       {% endfor %}

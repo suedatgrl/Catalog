@@ -7,7 +7,7 @@ admin.site.site_header = f"{settings.PLATFORM_NAME} — Platform Yönetimi"
 admin.site.site_title = settings.PLATFORM_NAME
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path(settings.ADMIN_URL, admin.site.urls),
     path("panel/", include("panel.urls")),
 ]
 
