@@ -1,0 +1,55 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% block nav_products %}on{% endblock %}
+{% block content %}
+{% if not filtered %}
+<section class="hero">
+  <h1>{{ shop.tagline|default:shop.name }}</h1>
+  {% if shop.working_hours %}<p>Bugün de buradayız · {{ shop.working_hours }}</p>{% endif %}
+</section>
+{% endif %}
+
+<form class="search" method="get" role="search">
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.500-3.500"/></svg>
+  <input type="search" name="q" value="{{ q }}" placeholder="Ürün ara… (ör. nevresim, ütü)" aria-label="Ürün ara" enterkeyhint="search" autocomplete="off">
+  {% if category %}<input type="hidden" name="kategori" value="{{ category.slug }}">{% endif %}
+  {% if q %}<a class="clear" href="?{% if category %}kategori={{ category.slug }}{% endif %}" aria-label="Aramayı temizle">×</a>{% endif %}
+</form>
+
+{% if categories %}
+<nav class="chips" aria-label="Kategoriler">
+  <a class="chip {% if not category %}on{% endif %}" href="?{% if q %}q={{ q|urlencode }}{% endif %}">Tümü</a>
+  {% for c in categories %}
+  <a class="chip {% if category.pk == c.pk %}on{% endif %}" href="?kategori={{ c.slug }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ c.name }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
+
+{% if has_custom and not filtered %}
+<a class="promo" href="{% url 'catalog:custom' shop.slug %}">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M3 21h18"/><path d="M7 21v-2M11 21v-3M15 21v-2M19 21v-3"/></svg>
+  <span><strong>Ölçünüze özel dikim</strong><small>Ölçünüzü girin, rengini seçin, nasıl duracağını görün.</small></span>
+  <span class="go" aria-hidden="true">→</span>
+</a>
+{% endif %}
+
+<h2 class="section-title">
+  {% if q %}“{{ q }}” için sonuçlar{% elif category %}{{ category.name }}{% else %}Tüm ürünler{% endif %}
+  <small>{{ products.paginator.count }} ürün</small>
+</h2>
+
+{% if products %}
+<div class="grid" id="grid">{% include "store/_cards.html" %}</div>
+{% if products.has_next %}
+<div class="more">
+  <button class="btn ghost" id="more" data-page="1" data-pages="{{ products.paginator.num_pages }}">Daha fazla göster</button>
+</div>
+{% endif %}
+{% else %}
+<div class="empty">
+  <strong>Ürün bulunamadı</strong>
+  {% if filtered %}Farklı bir kelime deneyin ya da <a href="{{ shop.get_absolute_url }}" style="text-decoration:underline">tüm ürünlere dönün</a>.{% else %}Bu mağaza henüz ürün eklemedi.{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/store.js' %}" defer></script>{% endblock %}

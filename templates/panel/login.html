@@ -1,0 +1,24 @@
+{% load static %}<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Giriş · {{ PLATFORM_NAME }}</title>
+  <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+</head>
+<body>
+<main class="auth">
+  <form class="card" method="post">
+    {% csrf_token %}
+    <h1>{{ PLATFORM_NAME }}</h1>
+    <p class="muted" style="margin:0 0 18px">Mağaza panelinize giriş yapın.</p>
+    {% if form.errors %}<div class="flash error">Kullanıcı adı veya şifre hatalı.</div>{% endif %}
+    <div class="fld"><label for="id_username">Kullanıcı adı</label><input id="id_username" name="username" autocomplete="username" autocapitalize="none" required autofocus></div>
+    <div class="fld"><label for="id_password">Şifre</label><input id="id_password" name="password" type="password" autocomplete="current-password" required></div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn" type="submit">Giriş yap</button>
+  </form>
+</main>
+</body>
+</html>

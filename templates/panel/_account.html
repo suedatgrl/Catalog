@@ -1,0 +1,9 @@
+{% if request.shops.count > 1 %}
+<form method="post" action="{% url 'panel:switch' %}">{% csrf_token %}
+  <select name="shop" onchange="this.form.submit()" aria-label="Mağaza seç">
+    {% for s in request.shops %}<option value="{{ s.pk }}" {% if s.pk == request.shop.pk %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+  </select>
+</form>
+{% endif %}
+<a href="{% url 'panel:password' %}">Şifre değiştir</a>
+<form method="post" action="{% url 'panel:logout' %}">{% csrf_token %}<button type="submit">Çıkış yap ({{ request.user.username }})</button></form>

@@ -1,0 +1,75 @@
+{% extends "store/base.html" %}
+{% load static catalog_extras %}
+{% block title %}{{ product.name }} · {{ shop.name }}{% endblock %}
+{% block description %}{{ product.description|truncatechars:150|default:product.name }}{% endblock %}
+{% block og_title %}{{ product.name }}{% endblock %}
+{% block og %}{% if images %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ images.0.image.url }}">{% endif %}{% endblock %}
+{% block nav_products %}on{% endblock %}
+{% block fab %}{% endblock %}
+
+{% block content %}
+<a class="back" href="{{ shop.get_absolute_url }}{% if product.category %}?kategori={{ product.category.slug }}{% endif %}">← {% if product.category %}{{ product.category.name }}{% else %}Tüm ürünler{% endif %}</a>
+
+<article class="product">
+  <div class="gallery">
+    <div class="slides" id="slides">
+      {% for img in images %}
+      <img src="{{ img.image.url }}" alt="{{ product.name }} — fotoğraf {{ forloop.counter }}" {% if not forloop.first %}loading="lazy"{% endif %}>
+      {% empty %}
+      <div class="noimg" style="font-size:96px">{{ product.name|initial }}</div>
+      {% endfor %}
+    </div>
+    {% if images|length > 1 %}<div class="dots" id="dots">{% for img in images %}<i {% if forloop.first %}class="on"{% endif %}></i>{% endfor %}</div>{% endif %}
+  </div>
+
+  <div class="info">
+    {% if product.category %}<span class="cat">{{ product.category.name }}</span>{% endif %}
+    <h1>{{ product.name }}</h1>
+
+    {% if shop.show_prices and product.price is not None %}
+    <div class="price">{{ product.price|tl }}{% if product.discount_percent %}<s>{{ product.old_price|tl }}</s><span class="pill off">%{{ product.discount_percent }} indirim</span>{% endif %}</div>
+    {% endif %}
+    <span class="pill {% if product.in_stock %}ok{% else %}no{% endif %}">{% if product.in_stock %}Mağazada mevcut{% else %}Şu an tükendi{% endif %}</span>
+    {% if product.sku %}<span class="muted" style="font-size:13px;margin-left:8px">Kod: {{ product.sku }}</span>{% endif %}
+
+    {% if product.size_list %}
+    <div class="opts"><h3>Beden / ölçü</h3><div class="tags">{% for s in product.size_list %}<span class="tag">{{ s }}</span>{% endfor %}</div></div>
+    {% endif %}
+    {% if product.color_list %}
+    <div class="opts"><h3>Renk seçenekleri</h3><div class="tags">{% for c in product.color_list %}<span class="tag">{{ c }}</span>{% endfor %}</div></div>
+    {% endif %}
+
+    {% if product.description %}<p class="desc">{{ product.description }}</p>{% endif %}
+
+    {% if product.spec_rows %}
+    <div class="opts"><h3>Özellikler</h3>
+      <table class="specs">
+        {% for key, val in product.spec_rows %}
+        <tr>{% if key %}<td>{{ key }}</td><td>{{ val }}</td>{% else %}<td colspan="2" style="color:inherit">{{ val }}</td>{% endif %}</tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% endif %}
+
+    <div class="cta sticky">
+      {% if shop.wa_number %}
+      <a class="btn wa" target="_blank" rel="noopener"
+         href="{% wa_link shop.wa_number 'Merhaba, şu ürün hakkında bilgi almak istiyorum: '|add:product.name|add:' — '|add:page_url %}">
+        {% include "store/_wa.svg" %} WhatsApp'tan sor
+      </a>
+      {% elif shop.phone %}
+      <a class="btn" href="tel:{{ shop.phone|cut:' ' }}">Mağazayı ara</a>
+      {% endif %}
+      <button class="btn ghost" type="button" id="share" data-title="{{ product.name }}" data-url="{{ page_url }}">Paylaş</button>
+    </div>
+  </div>
+</article>
+
+{% if related %}
+<section class="related">
+  <h2 class="section-title">Benzer ürünler</h2>
+  <div class="grid">{% include "store/_cards.html" with products=related %}</div>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/store.js' %}" defer></script>{% endblock %}

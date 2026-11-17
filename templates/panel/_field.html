@@ -1,0 +1,10 @@
+{% if field.widget_type == "checkbox" %}
+<div class="fld check">{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}</label></div>
+{% else %}
+<div class="fld">
+  <label for="{{ field.id_for_label }}">{{ field.label }}{% if not field.field.required %} <span class="muted small">(isteğe bağlı)</span>{% endif %}</label>
+  {{ field }}
+  {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+  {% for e in field.errors %}<span class="err">{{ e }}</span>{% endfor %}
+</div>
+{% endif %}

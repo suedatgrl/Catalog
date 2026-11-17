@@ -1,0 +1,58 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% block title %}Özel dikim · {{ shop.name }}{% endblock %}
+{% block nav_custom %}on{% endblock %}
+{% block fab %}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Ölçünüze özel dikim</h1>
+  <p>Ölçünüzü girin, rengini seçin; nasıl duracağını hemen görün. Beğenirseniz talebinizi bize iletin.</p>
+</section>
+
+{% if sent %}<div class="flash">Talebiniz bize ulaştı. En kısa sürede sizi arayacağız.</div>{% endif %}
+
+<div class="designer">
+  <div class="stage">
+    <svg id="viz" viewBox="0 0 600 460" role="img" aria-label="Seçtiğiniz ölçü ve renklerle ürün önizlemesi"></svg>
+    <div class="est"><span>Tahmini kumaş: <b id="est-area">–</b></span><span id="est-price-row" hidden>Tahmini fiyat: <b id="est-price">–</b></span></div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2><span class="n">1</span> Ne diktirmek istiyorsunuz?</h2>
+      <div class="tags" id="items"></div>
+      <p class="fine" id="item-desc"></p>
+    </div>
+
+    <div class="panel">
+      <h2><span class="n">2</span> Ölçüler</h2>
+      <div class="tags" id="presets"></div>
+      <div id="dims"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="n">3</span> Renkler</h2>
+      <div id="parts"></div>
+    </div>
+
+    <form class="panel" method="post" id="request-form">
+      {% csrf_token %}
+      <h2><span class="n">4</span> Teklif isteyin</h2>
+      <input type="hidden" name="item"><input type="hidden" name="dims"><input type="hidden" name="parts">
+      <div class="hp" aria-hidden="true"><label>Web sitesi <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+      <div class="field"><label for="cn">Adınız soyadınız</label><input id="cn" name="customer_name" required maxlength="80" autocomplete="name"></div>
+      <div class="field"><label for="ph">Telefon numaranız</label><input id="ph" name="phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
+      <div class="field"><label for="nt">Notunuz (isteğe bağlı)</label><textarea id="nt" name="note" rows="2" maxlength="300"></textarea></div>
+      <div class="cta">
+        <button class="btn block" type="submit">Talebi gönder</button>
+        {% if shop.wa_number %}<a class="btn wa block" id="wa-send" target="_blank" rel="noopener" href="#">{% include "store/_wa.svg" %} WhatsApp ile gönder</a>{% endif %}
+      </div>
+      <p class="fine">Görsel ve fiyat fikir vermesi içindir; kesin ölçü ve fiyat mağazada netleşir. Bilgileriniz yalnızca bu talep için {{ shop.name }} ile paylaşılır.</p>
+    </form>
+  </div>
+</div>
+
+{{ config|json_script:"viz-config" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/visualizer.js' %}" defer></script>{% endblock %}

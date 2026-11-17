@@ -1,0 +1,18 @@
+{% load static %}<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mağaza bulunamadı · {{ PLATFORM_NAME }}</title>
+  <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+</head>
+<body>
+<main class="auth">
+  <div class="card">
+    <h1>Mağaza tanımlı değil</h1>
+    <p class="muted">“{{ request.user.username }}” hesabına bağlı bir mağaza yok. Lütfen platform yöneticinizle iletişime geçin.</p>
+    <form method="post" action="{% url 'panel:logout' %}">{% csrf_token %}<button class="btn ghost" type="submit">Çıkış yap</button></form>
+  </div>
+</main>
+</body>
+</html>

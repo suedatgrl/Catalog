@@ -1,0 +1,47 @@
+{% load static catalog_extras %}<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}Panel{% endblock %} · {{ request.shop.name }}</title>
+  <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+</head>
+<body style="--accent: {{ request.shop.accent_color }}; --on-accent: {{ request.shop.accent_text }};">
+{% with name=request.resolver_match.url_name shop=request.shop %}
+<div class="shell">
+  <aside class="side">
+    <div class="head">
+      {% if shop.logo %}<img class="mark" src="{{ shop.logo.url }}" alt="">{% else %}<span class="mark">{{ shop.name|initial }}</span>{% endif %}
+      <div style="min-width:0"><strong>{{ shop.name }}</strong><small>Mağaza paneli</small></div>
+    </div>
+    <nav class="menu">
+      <a href="{% url 'panel:dashboard' %}" class="{% if name == 'dashboard' %}on{% endif %}">Özet</a>
+      <a href="{% url 'panel:products' %}" class="{% if name == 'products' or name == 'product_new' or name == 'product_edit' %}on{% endif %}">Ürünler</a>
+      <a href="{% url 'panel:categories' %}" class="{% if name == 'categories' %}on{% endif %}">Kategoriler</a>
+      <a href="{% url 'panel:custom_items' %}" class="{% if name == 'custom_items' %}on{% endif %}">Özel dikim</a>
+      <a href="{% url 'panel:colors' %}" class="{% if name == 'colors' %}on{% endif %}">Renk kartelası</a>
+      <a href="{% url 'panel:requests' %}" class="{% if name == 'requests' %}on{% endif %}">Talepler</a>
+      <a href="{% url 'panel:qr' %}" class="{% if name == 'qr' %}on{% endif %}">QR kod</a>
+      <a href="{% url 'panel:settings' %}" class="{% if name == 'settings' %}on{% endif %}">Mağaza ayarları</a>
+      <a href="{{ shop.get_absolute_url }}" target="_blank" rel="noopener">Mağazayı gör ↗</a>
+    </nav>
+    <div class="tail">
+      {% include "panel/_account.html" %}
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="inner">
+      {% for message in messages %}<div class="flash {{ message.tags }}">{{ message }}</div>{% endfor %}
+      {% block content %}{% endblock %}
+      <div class="card mobile-only" style="margin-top:28px;background:#1c1917;border:0">
+        <div class="tail" style="display:block">{% include "panel/_account.html" %}</div>
+      </div>
+    </div>
+  </main>
+</div>
+{% endwith %}
+{% block scripts %}{% endblock %}
+</body>
+</html>
