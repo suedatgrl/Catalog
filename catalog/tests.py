@@ -52,6 +52,23 @@ class HelperTests(TestCase):
         self.assertEqual(tl("1299.9"), "1.299,90 ₺")
 
 
+class SiteUrlTests(TestCase):
+    @override_settings(DEBUG=True, SITE_URL="")
+    def test_localhost_uses_lan_address_with_same_port(self):
+        from unittest import mock
+
+        from .utils import site_url
+
+        request = mock.Mock(scheme="http")
+        request.get_host.return_value = "127.0.0.1:8000"
+        with mock.patch("catalog.utils.lan_ip", return_value="192.168.1.9"):
+            self.assertEqual(site_url(request), "http://192.168.1.9:8000")
+        request.get_host.return_value = "magaza.example.com"
+        self.assertEqual(site_url(request), "http://magaza.example.com")
+        with override_settings(SITE_URL="https://ornek.com"):
+            self.assertEqual(site_url(request), "https://ornek.com")
+
+
 class StoreTests(Base):
     def test_shop_page_and_search(self):
         r = self.client.get("/ayse/")

@@ -104,8 +104,9 @@ def site_url(request):
     host = request.get_host()
     # Geliştirirken panel 127.0.0.1 üzerinden açılır ama telefon o adrese ulaşamaz;
     # QR kod telefonda da çalışsın diye bilgisayarın ağ adresini yazarız.
-    if settings.DEBUG and host.split(":")[0] in ("127.0.0.1", "localhost"):
+    name, _, port = host.partition(":")
+    if settings.DEBUG and name in ("127.0.0.1", "localhost"):
         ip = lan_ip()
         if ip and not ip.startswith("127."):
-            return f"http://{ip}:{request.get_port()}"
+            return f"http://{ip}:{port}" if port else f"http://{ip}"
     return f"{request.scheme}://{host}"
